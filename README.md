@@ -227,6 +227,12 @@ body {
 }
 </style>
 ```
+
+Stylesheet display inline to avoid new lines with every paragraph `<p>` element
+```
+<p style="display:inline"></p>
+```
+
 # To Do
 
 - [x] Load the centre list items from a file. Parse and stringify to enable links in text. Give up on json
@@ -257,5 +263,5 @@ body {
 
 - [ ] id name scheme. Aim for end user friendly. `item_001_detail` Type, numeration, extension.
 
-
+- [ ] Scale function. Javascript check the screen size, set a discrete scale float and alter the website layout
 

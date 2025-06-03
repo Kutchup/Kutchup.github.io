@@ -3,14 +3,14 @@
 <html>
     <head>
         <title>index.html</title>
-        <link rel="icon" type="image/x-icon" href="./favicon.ico">
+        <link rel="icon" href="./favicon.ico">
         <meta name="keywords" content="Kutchup, finance, relativity, biology, telecommunications" />
         <meta name="description" content="index.html Website Kutchup 2025" />
         <!-- λ #-----------------------------# Stylesheet #-----------------------------# π -->
         <style>
             body {
                 background-color: rgb(255, 231, 206);
-                font-family: 'Lucida Sans Unicode';
+                font-family: 'Lucida Sans Unicode', Arial;
                 color: rgb(38, 38, 38);
                 text-align: center;
                 padding: 20px;
@@ -68,9 +68,11 @@ index.html
 
 <h1>Kutchup</h1>
 <h3 id="item_001">Making a Website</h3>
-<p id="item_001_detail">Kutchup is using VS Code <a href="index.html" id="item_001_link">Link</a></p>
+<p id="item_001_detail">Kutchup is using VSCode index.html</p>
+<a href="index.html" id="item_001_link"></a>
 <h3 id="item_002">Watching Morning Television</h3>
-<p id="item_002_detail">Kutchup was watching from 06:00 to 06:37 <a href="index.html">Link</a></p>
+<p id="item_002_detail">Kutchup was watching from 06:00 to 06:37</p>
+<a href="index.html" id="item_002_link"></a>
 
 <!-- λ #-----------------------------# Centre Column End #-----------------------------# π -->
 </div>
@@ -91,36 +93,21 @@ index.html
 
 <script>
 // index.html Website Kutchup 2025
+
 function run() {
 // λ #-----------------------------# Run Website #-----------------------------# π
 console.log("Kutchup")
 let grd = 1-(2/(1+Math.sqrt(5)))
 console.log("grd " + grd) // 0.3819660112501052
 
-let item1 = ""
-item1 += "Making a Website"
-document.getElementById('item_001').textContent = item1;
+item_001.textContent = "Making a Website"
+item_001_detail.textContent = "Kutchup is using VSCode index.html"
 
-let item1e = ""
-item1e += "Kutchup is using VS Code "
-document.getElementById('item_001_detail').textContent = item1e;
+item_002.textContent = "Out for a Walk"
+item_002_detail.textContent = "About 2 hours of mindful walking"
 
-let item1k = ""
-// item1k += ""
-document.getElementById('item_001_link').textContent = item1k;
-
-let item2 = ""
-item2 += "Making a Website"
-document.getElementById('item_002').textContent = item2;
-
-let item2e = ""
-item2e += "Kutchup is using VS Code "
-document.getElementById('item_002_detail').textContent = item2e;
-
-let item2k = ""
-item2k += "Link"
-document.getElementById('item_002_link').textContent = item2k;
-
+item_001_link.href = "detail.html"
+item_001_link.textContent = "Link"
 
 // λ #-----------------------------# Run Function End #-----------------------------# π
 }
