@@ -19,7 +19,7 @@ Website Kutchup 2025
 
 ## Background Colour
 Finding the colour in js
-```
+```js
 let grd = 1-(2/(1+Math.sqrt(5)))
 console.log("grd " + grd) // 0.3819660112501052
 console.log("1-grd " + (1-grd)) // 0.6180339887498948
@@ -29,7 +29,7 @@ console.log("255*(1-0.5*grd) " + 255*(1-0.5*grd)) // 206.2993335656116
 console.log("255*(1-0.25*grd) " + 255*(1-0.25*grd)) // 230.6496667828058
 ```
 Stylesheet body
-```
+```html
 <style>
     body {
         background-color: rgb(255, 231, 206);
@@ -40,7 +40,7 @@ Stylesheet body
 ## Fonts
 
 List of preferred fonts. One font is used to render. `Times` default
-```
+```html
 font-family: Arial, Helvetica, sans-serif;
 ```
 
@@ -61,7 +61,7 @@ Times
 ```
 
 Font Test
-```
+```html
 <style>
 h1 {
     color: rgb(255, 0, 0);
@@ -99,7 +99,7 @@ h6 {
 ```
 
 Changing the font for a class
-```
+```html
 <style>
 .style_instructions {
     color: rgb(97, 97, 97);
@@ -112,7 +112,7 @@ Changing the font for a class
 ```
 
 All the hyperlink controls
-```
+```html
 <style>
 a {
     color: rgb(158, 158, 255);
@@ -173,7 +173,7 @@ Stylesheet link and doctype used in most html for more specific browser control
 ```
 
 Custom Font
-```
+```html
 <style>
 @font-face {
     font-family: 'YourFontName'; /*a name to be used later*/
@@ -186,14 +186,14 @@ Custom Font
 ```
 
 Grid layout
-```
+```html
 grid-template-columns: 1fr 1fr 1fr;
 grid-template-columns: 0.38fr 1fr 0.38fr;
 grid-template-columns: 0.5fr 1.62fr 0.5fr;
 ```
 
 Load from file
-```
+```js
 <script>
 function readFile(database_file_name) {
     fetch(database_file_name, {mode: 'cors'})
@@ -212,12 +212,12 @@ run();
 ```
 
 Scroll bar visible at all times. This would fix the resizing issue when the scroll bar appears for page and browser
-```
+```html
 html { overflow-y: scroll; }
 ```
 
 100% view width with the horizontal scroll bar hidden
-```
+```js
 <style>
 body {
     overflow-x: hidden;
@@ -229,9 +229,18 @@ body {
 ```
 
 Stylesheet display inline to avoid new lines with every paragraph `<p>` element
-```
+```html
 <p style="display:inline"></p>
 ```
+
+Original console log
+```js
+console.log("Kutchup")
+let grd = 1-(2/(1+Math.sqrt(5)))
+console.log("grd " + grd) // 0.3819660112501052
+```
+
+
 
 # To Do
 
@@ -259,9 +268,9 @@ Stylesheet display inline to avoid new lines with every paragraph `<p>` element
 
 - [ ] Option 3: Read from a server side file such as json. This is the standard and expected route. The programming language is ready for users to parse json. Fast. Can be pushed quick and safe updates but not very easily. The content files are small and easy to edit but the json language is not human friendly and a typo or mistake will break and cause an error
 
-- [ ] Software. Add a bunch of static code and pack it neatly into one html file. You know what to do
+- [ ] Software. Add a bunch of static code and pack it neatly into one html file. You know what to do. Typesetting for maths functions. Graphs
 
-- [ ] id name scheme. Aim for end user friendly. `item_001_detail` Type, numeration, extension.
+- [ ] id name scheme. Aim for end user friendly. `item_001_detail` Type, numeration, extension. `item_001` is a good tag. Add lots of blank tags as needed for the page, index page only needs 2 items. Set item text content in javascript because it the most functional of the three. `string =` or `string +=`
 
 - [ ] Scale function. Javascript check the screen size, set a discrete scale float and alter the website layout
 
