@@ -32,6 +32,7 @@
             .grid_container {
                 display: grid;
                 grid-template-columns: 0.5fr 1.62fr 0.5fr;
+                /* grid-template-columns: 0.5fr 1.62fr; */
                 gap: 10px;
             }
             .grid_left {
@@ -56,9 +57,9 @@ software.html
 <dt><a href="activity.html">Activity</a></dt>
 <dd>Report</dd>
 <dt><a href="software.html">Software</a></dt>
-<dd>Video game, bot account and generator</dd>
+<dd>Haptic programming for humans</dd>
 <dt><a href="detail.html">Detail</a></dt>
-<dd>Analytic</dd>
+<dd>Statistic from the browser</dd>
 </dl>
 </div>
 <!-- λ #-----------------------------# Centre Column #-----------------------------# π -->
@@ -67,9 +68,39 @@ software.html
 <p id="instructions" class="style_instructions">Watch this space</p>
 
 <h1>Kutchup</h1>
-<h3 id="item_001">1-(2/(1+Math.sqrt(5)))</h3>
-<p id="item_001_detail">grd</p>
-
+<h3 id="item_001"></h3>
+<p id="item_001_detail"></p>
+<a href="index.html" id="item_001_link"></a>
+<h3 id="item_002"></h3>
+<p id="item_002_detail"></p>
+<a href="index.html" id="item_002_link"></a>
+<h3 id="item_003"></h3>
+<p id="item_003_detail"></p>
+<a href="index.html" id="item_003_link"></a>
+<h3 id="item_004"></h3>
+<p id="item_004_detail"></p>
+<a href="index.html" id="item_004_link"></a>
+<h3 id="item_005"></h3>
+<p id="item_005_detail"></p>
+<a href="index.html" id="item_005_link"></a>
+<h3 id="item_006"></h3>
+<p id="item_006_detail"></p>
+<a href="index.html" id="item_006_link"></a>
+<h3 id="item_007"></h3>
+<p id="item_007_detail"></p>
+<a href="index.html" id="item_007_link"></a>
+<h3 id="item_008"></h3>
+<p id="item_008_detail"></p>
+<a href="index.html" id="item_008_link"></a>
+<h3 id="item_009"></h3>
+<p id="item_009_detail"></p>
+<a href="index.html" id="item_009_link"></a>
+<h3 id="item_010"></h3>
+<p id="item_010_detail"></p>
+<a href="index.html" id="item_010_link"></a>
+<h3 id="item_011"></h3>
+<p id="item_011_detail"></p>
+<a href="index.html" id="item_011_link"></a>
 <!-- λ #-----------------------------# Centre Column End #-----------------------------# π -->
 </div>
 <div class="grid_right">
@@ -80,22 +111,34 @@ software.html
 <dt><a href="index.html">Forum</a></dt>
 <dd>Comment</dd>
 <dt><a href="index.html">Game</a></dt>
-<dd>Game launcher profile, add me as a friend</dd>
+<dd>Add me as a friend</dd>
 <dt><a href="index.html">Article</a></dt>
-<dd>Science, history and current affair</dd>
+<dd>Science</dd>
 </dl>
 </div>
 </div>
 
 <script>
 // software.html Website Kutchup 2025
+
+function do_scale() {
+let scale = 1
+if(window.screen.width < 500){scale = 0.5}
+else if(window.screen.width > 2600){scale = 2}
+if(scale == 0.5){grid_container.style["grid-template-columns"] = "0.5fr 1.62fr";}
+}
+
 function run() {
 // λ #-----------------------------# Run Website #-----------------------------# π
+do_scale()
 console.log("Kutchup")
 let grd = 1-(2/(1+Math.sqrt(5)))
 console.log("grd " + grd) // 0.3819660112501052
 
+item_001.textContent = "1-(2/(1+Math.sqrt(5)))"
 item_001_detail.textContent = grd
+
+item_002.textContent = "Coming Soon: Video game, bot, generator"
 
 // λ #-----------------------------# Run Function End #-----------------------------# π
 }
