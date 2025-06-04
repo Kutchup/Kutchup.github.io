@@ -57,7 +57,7 @@ software.html
 <dt><a href="activity.html">Activity</a></dt>
 <dd>Report</dd>
 <dt><a href="software.html">Software</a></dt>
-<dd>Haptic programming for humans</dd>
+<dd>Haptic programming for humanity</dd>
 <dt><a href="detail.html">Detail</a></dt>
 <dd>Statistic from the browser</dd>
 </dl>
@@ -121,16 +121,24 @@ software.html
 <script>
 // software.html Website Kutchup 2025
 
+function set_layout() {
+    var grid_elements = document.getElementsByClassName('grid_container');
+    for(i = 0; i < grid_elements.length; i++) {
+        grid_elements[i].style.gridTemplateColumns = "0.5fr 1.62fr";
+    }
+}
+
 function do_scale() {
 let scale = 1
+scale = 0.5 // test
 if(window.screen.width < 500){scale = 0.5}
 else if(window.screen.width > 2600){scale = 2}
-if(scale == 0.5){grid_container.style["grid-template-columns"] = "0.5fr 1.62fr";}
+if(scale == 0.5){set_layout();}
 }
 
 function run() {
 // λ #-----------------------------# Run Website #-----------------------------# π
-do_scale()
+do_scale();
 console.log("Kutchup")
 let grd = 1-(2/(1+Math.sqrt(5)))
 console.log("grd " + grd) // 0.3819660112501052

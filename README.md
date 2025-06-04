@@ -272,5 +272,5 @@ console.log("grd " + grd) // 0.3819660112501052
 
 - [ ] id name scheme. Aim for end user friendly. `item_001_detail` Type, numeration, extension. `item_001` is a good tag. Add lots of blank tags as needed for the page, index page only needs 2 items. Set item text content in javascript because it the most functional of the three. `string =` or `string +=`
 
-- [ ] Scale function. Javascript check the screen size, set a discrete scale float and alter the website layout
+- [ ] Scale function. Javascript check the screen size, set a discrete scale float and alter the website layout. Scale factor 2 for screens greater than 4K which is a bit of a novelty
 
