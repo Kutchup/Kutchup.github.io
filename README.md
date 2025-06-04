@@ -41,7 +41,7 @@ Stylesheet body
 
 List of preferred fonts. One font is used to render. `Times` default
 ```css
-font-family: Arial, Helvetica, sans-serif;
+font-family: Cambria, sans-serif;
 ```
 
 ```
@@ -141,23 +141,21 @@ Once the website opens in the browser two main features are required. A satisyin
 
 I would guess that html was more built for reading a book. Now html enables lots of graphics and layout.
 
-> Reading a book
-
 ## Content Delivery Network
 
 To have a website that changes to match a real person's life, use a content delivery network. The website and person should flow in parallel. Without such a content delivery network the website is like a motionless painting. To increase hit count update the page with fresh information.
 
-Do not use json. Have built in html enough to satify one user for a few visits. Use a hosting service to create a new content delivery network for this project. Allow both using code logic. The website either updates or loads basic code.
+Do not use json. Have built in html enough to satify one user for a few visits. Use a service to create a new content delivery network for this project. Allow both online and offline using code logic. The website either updates or loads basic code.
 
 Do more research for sending information to the server.
 
 ## Layout
 
-`grd` layout and colours preset in html. `grd` is also calculated client side for show and help users create haptic software.
+To make the layout and colours `grd` is preset in html. `grd` is also calculated client side for show and to help users create haptic software.
 
 Scroll bar and most other settings remain on default. This is an important design choice for viewing the website on different devices
 
-Essential css. There is no way to have a reasonable zero style html website. Styling potential goes through the roof thanks to modern html graphics. Professional websites are made with css editors and website builders. Do not attempt to recreate up to professional quality. Instead, set the artistic choices to have a project that matches itself. Learn from the best
+Essential css. There is no way to have a reasonable zero style html website. Styling potential goes through the roof thanks to modern html graphics. Professional websites are made with css editors and website builders. Do not attempt to recreate up to professional quality. Instead, set the artistic choices to have a project that matches itself. Learn from the best.
 
 > Styling potential
 
@@ -178,20 +176,23 @@ for(i = 0; i < grid_elements.length; i++) {
 
 # Ideas
 
-Set the favicon for bookmarks otherwise browsers look in the root directory by default.
+Set a nice icon for the user's bookmarks. Apparently most browsers look in the root directory by default but I have used the most common name scheme and attached the file to the html code with one minimal string `favicon.ico`.
 
 ```html
-<!-- <link rel="icon" type="image/x-icon" href="/favicon.ico"> -->
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" href="./favicon.ico">
 ```
 
-Stylesheet link and doctype used in most html for more specific browser control
+Trim down code. A blank document is like a blank piece of paper. Someone making code should not have to write any generic or pointless symbols. Currently UTF-8 Latin characters are compiled into C code, machine code and graphic processor scripts. The graphics are always interesting because there are some smart optimisations about graphics processing units. Since the basic shapes require a very fixed and specific quantity of numbers, such as 3 points for a triangle, the physics and hardware corresponds very nicely to run fast programs. By defining a matrix instead of a list of variables, another brilliant application of mathematics allows for matrices to be multiplied together in advance of the render to make a matrix stack.
+
+We shouldn't even be running better graphics! Graphics should be ultra smooth and haptic.
+
+Most convential projects use this format but it is not necessary for this project and the direct code will be easier for a beginner to read. For more specific browser control we could add a Stylesheet link and doctype.
 ```html
 <!DOCTYPE html>
 <link rel="stylesheet" href="/css/screen.css">
 ```
 
-Custom Font
+Custom Font. Remember there are languages and writing systems. Some languages vary by country. Users have a short list of languages `en-GB, en, zh, fr`.
 ```html
 <style>
 @font-face {
@@ -204,20 +205,20 @@ Custom Font
 </style>
 ```
 
-Grid layout
+Grid layout using relative widths.
 ```html
 grid-template-columns: 1fr 1fr 1fr;
 grid-template-columns: 0.38fr 1fr 0.38fr;
 grid-template-columns: 0.5fr 1.62fr 0.5fr;
 ```
 
-Use the trendy 3 column layout and switch to 2 columns
+Use the trendy 3 column layout and switch to 2 columns depending on the scale. The scale is set after checking the user's device details.
 ```
 grid-template-columns: 0.5fr 1.62fr 0.5fr;
 grid-template-columns: 0.5fr 1.62fr;
 ```
 
-Load from file
+Load from file. I don't do it this way anymore
 ```js
 <script>
 function readFile(database_file_name) {
@@ -271,29 +272,29 @@ console.log("grd " + grd) // 0.3819660112501052
 
 - [x] Make all the Sitemap links work with the same layout as the index page. Need an inheritance tree. Decide against the tree because it is static and easily controlled by changing the stylesheet
 
-- [ ] Consider link tracker and server log
+- [x] Consider link tracker and server log. Unpopular. Link trackers are built in to the internet anyway, just obtain better information. The hosting service has logs which I don't have access to
 
-- [ ] Details page
+- [ ] Details page. Add more information. Give instructions to the reader. Help to define the website. Stay within the scope of the website and browser
 
-- [ ] Form page identification. Host the website on domain name open source. Send and push the user form to a chosen API. Mainstream large website hosting company that runs mostly on advertising
+- [ ] Form page identification. Host the website on domain name open source. Send and push the user form to a chosen API. Mainstream large website hosting company that runs mostly on advertising. Connect HTML elements so that when the user completes the form the form data is sent to an API. The API must be chosen carefully therefore chose the largest stability. I'm also doubting what is stable however there are now companies that have been running cloud services for over a decade
 
 - [ ] Pictures page. Future project
 
 - [x] Body text changes the layout. It's the scroll bar appearing on some pages. In conclusion, leave the scroll bar as it is. It's more annoying to have the incorrect scroll bar. The layout changes dramatically with window size anyway. The scroll bar should stay on default visibility. Pages can be as long as the writer wants
 
-- [ ] Feed page with custom RSS reader
+- [ ] Feed page with custom RSS reader. Instead, just add hyperlinks and chose the website's content
 
-- [ ] Content delivery system. Anything, just anything other than having to type between html tags. However hosting services won't make it easy to read from files because it's a security risk. Use `id` tags for each changing element, this will only be required by the html and js. Add a function to set each changing element.
+- [x] Content delivery system. Anything, just anything other than having to type between html tags. However hosting services won't make it easy to read from files because it's a security risk. Use `id` tags for each changing element, this will only be required by the html and js. Add a function to set each changing element. Option 1 complete
 
-- [ ] Option 1: Change between a small precoded set and keep all code within a local html filesystem. Fast. Runs forever and never breaks
+- [x] Option 1: Change between a small precoded set and keep all code within a local html filesystem. Fast. Runs forever and never breaks
 
-- [ ] Option 2: Read from a different hosting service. Update the website content easily from anywhere on a favourite keyboard and text editor. Set up the content delivery service to require a user friendly format. Slow and could go offline. Could have unpredictable results. Risk of rigging, contracts and moderators
+- [x] Option 2: Read from a different hosting service. Update the website content easily from anywhere on a favourite keyboard and text editor. Set up the content delivery service to require a user friendly format. Slow and could go offline. Could have unpredictable results. Risk of rigging, contracts and moderators
 
-- [ ] Option 3: Read from a server side file such as json. This is the standard and expected route. The programming language is ready for users to parse json. Fast. Can be pushed quick and safe updates but not very easily. The content files are small and easy to edit but the json language is not human friendly and a typo or mistake will break and cause an error
+- [x] Option 3: Read from a server side file such as json. This is the standard and expected route. The programming language is ready for users to parse json. Fast. Can be pushed quick and safe updates but not very easily. The content files are small and easy to edit but the json language is not human friendly and a typo or mistake will break and cause an error
 
 - [ ] Software. Add a bunch of static code and pack it neatly into one html file. You know what to do. Typesetting for maths functions. Graphs
 
-- [ ] id name scheme. Aim for end user friendly. `item_001_detail` Type, numeration, extension. `item_001` is a good tag. Add lots of blank tags as needed for the page, index page only needs 2 items. Set item text content in javascript because it the most functional of the three. `string =` or `string +=`
+- [x] id name scheme. Aim for end user friendly. `item_001_detail` Type, numeration, extension. `item_001` is a good tag. Add lots of blank tags as needed for the page, index page only needs 2 items. Set item text content in javascript because it the most functional of the three. `string =` or `string +=`
 
-- [ ] Scale function. Javascript check the screen size, set a discrete scale float and alter the website layout. Scale factor 2 for screens greater than 4K which is a bit of a novelty
+- [x] Scale function. Javascript check the screen size, set a discrete scale float and alter the website layout. Scale factor 2 for screens greater than 4K which is a bit of a novelty
 
