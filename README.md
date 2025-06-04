@@ -40,7 +40,7 @@ Stylesheet body
 ## Fonts
 
 List of preferred fonts. One font is used to render. `Times` default
-```html
+```css
 font-family: Arial, Helvetica, sans-serif;
 ```
 
