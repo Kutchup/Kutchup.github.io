@@ -119,6 +119,18 @@ activity.html
 
 <script>
 // activity.html Website Kutchup 2025
+function set_layout() {
+    var grid_elements = document.getElementsByClassName('grid_container');
+    for(i = 0; i < grid_elements.length; i++) {
+        grid_elements[i].style.gridTemplateColumns = "0.5fr 1.62fr";
+    }
+}
+function do_scale() {
+    let scale = 1
+    if(window.screen.width < 500){scale = 0.5}
+    else if(window.screen.width > 2600){scale = 2}
+    if(scale == 0.5){set_layout();}
+}
 function run() {
 // λ #-----------------------------# Run Website #-----------------------------# π
 
@@ -145,6 +157,7 @@ item_007_detail.textContent = "I've been eating less and losing weight. Much hea
 
 // λ #-----------------------------# Run Function End #-----------------------------# π
 }
+do_scale();
 run();
 </script>
 </body>

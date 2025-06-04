@@ -141,6 +141,8 @@ Once the website opens in the browser two main features are required. A satisyin
 
 I would guess that html was more built for reading a book. Now html enables lots of graphics and layout.
 
+> Reading a book
+
 ## Content Delivery Network
 
 To have a website that changes to match a real person's life, use a content delivery network. The website and person should flow in parallel. Without such a content delivery network the website is like a motionless painting. To increase hit count update the page with fresh information.
@@ -156,6 +158,23 @@ Do more research for sending information to the server.
 Scroll bar and most other settings remain on default. This is an important design choice for viewing the website on different devices
 
 Essential css. There is no way to have a reasonable zero style html website. Styling potential goes through the roof thanks to modern html graphics. Professional websites are made with css editors and website builders. Do not attempt to recreate up to professional quality. Instead, set the artistic choices to have a project that matches itself. Learn from the best
+
+> Styling potential
+
+# Scale and Mobile Compatibility
+
+Define a scale float `let scale = 1`. It will be a discrete float because we only set `scale` to three possible values. Those values are `0.5, 1, 2`. When `scale = 1` the screen is a `1920 1080` high definition (HD) or better computer monitor resolution. Decide where the boundaries should be. There will never be a screen width of zero. Use screen width to change the scale float `if(window.screen.width < 500){scale = 0.5}`. From here any changes can be multiplied by the same scale.
+
+Use Javascript to change every HTML element with the same class. Alternatively use the `id` of every element.
+
+```js
+<script>
+var grid_elements = document.getElementsByClassName('grid_container');
+for(i = 0; i < grid_elements.length; i++) {
+    grid_elements[i].style.gridTemplateColumns = "0.5fr 1.62fr";
+}
+</script>
+```
 
 # Ideas
 
@@ -190,6 +209,12 @@ Grid layout
 grid-template-columns: 1fr 1fr 1fr;
 grid-template-columns: 0.38fr 1fr 0.38fr;
 grid-template-columns: 0.5fr 1.62fr 0.5fr;
+```
+
+Use the trendy 3 column layout and switch to 2 columns
+```
+grid-template-columns: 0.5fr 1.62fr 0.5fr;
+grid-template-columns: 0.5fr 1.62fr;
 ```
 
 Load from file
@@ -239,8 +264,6 @@ console.log("Kutchup")
 let grd = 1-(2/(1+Math.sqrt(5)))
 console.log("grd " + grd) // 0.3819660112501052
 ```
-
-
 
 # To Do
 

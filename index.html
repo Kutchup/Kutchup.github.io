@@ -93,21 +93,33 @@ index.html
 
 <script>
 // index.html Website Kutchup 2025
-
+function set_layout() {
+    var grid_elements = document.getElementsByClassName('grid_container');
+    for(i = 0; i < grid_elements.length; i++) {
+        grid_elements[i].style.gridTemplateColumns = "0.5fr 1.62fr";
+    }
+}
+function do_scale() {
+    let scale = 1
+    if(window.screen.width < 500){scale = 0.5}
+    else if(window.screen.width > 2600){scale = 2}
+    if(scale == 0.5){set_layout();}
+}
 function run() {
 // λ #-----------------------------# Run Website #-----------------------------# π
 
 item_001.textContent = "Making a Website"
 item_001_detail.textContent = "Kutchup is using VSCode index.html"
 
-item_002.textContent = "Out for a Walk"
-item_002_detail.textContent = "About 2 hours of mindful walking"
+item_002.textContent = "Sleeping"
+item_002_detail.textContent = "Kutchup went to bed without supper"
 
 item_001_link.href = "detail.html"
 item_001_link.textContent = "Link"
 
 // λ #-----------------------------# Run Function End #-----------------------------# π
 }
+do_scale();
 run();
 </script>
 </body>
