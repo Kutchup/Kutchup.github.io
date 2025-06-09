@@ -238,12 +238,12 @@ run();
 ```
 
 Scroll bar visible at all times. This would fix the resizing issue when the scroll bar appears for page and browser
-```html
+```css
 html { overflow-y: scroll; }
 ```
 
 100% view width with the horizontal scroll bar hidden
-```js
+```html
 <style>
 body {
     overflow-x: hidden;
