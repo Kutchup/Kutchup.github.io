@@ -266,6 +266,15 @@ let grd = 1-(2/(1+Math.sqrt(5)))
 console.log("grd " + grd) // 0.3819660112501052
 ```
 
+Hyperlinks change colour to lighter blue when visited
+```
+<style>
+a:visited {
+    color: rgb(158, 158, 255);
+}
+</style>
+```
+
 # To Do
 
 - [x] Load the centre list items from a file. Parse and stringify to enable links in text. Give up on json
