@@ -153,7 +153,7 @@ Do more research for sending information to the server.
 
 To make the layout and colours `grd` is preset in html. `grd` is also calculated client side for show and to help users create haptic software.
 
-Scroll bar and most other settings remain on default. This is an important design choice for viewing the website on different devices
+Scroll bar and most other settings remain set to default. This is an important design choice for viewing the website on different devices
 
 Essential css. There is no way to have a reasonable zero style html website. Styling potential goes through the roof thanks to modern html graphics. Professional websites are made with css editors and website builders. Do not attempt to recreate up to professional quality. Instead, set the artistic choices to have a project that matches itself. Learn from the best.
 
@@ -165,7 +165,7 @@ Define a scale float `let scale = 1`. It will be a discrete float because we onl
 
 Use Javascript to change every HTML element with the same class. Alternatively use the `id` of every element.
 
-```js
+```html
 <script>
 var grid_elements = document.getElementsByClassName('grid_container');
 for(i = 0; i < grid_elements.length; i++) {
@@ -206,20 +206,20 @@ Custom Font. Remember there are languages and writing systems. Some languages va
 ```
 
 Grid layout using relative widths.
-```html
+```css
 grid-template-columns: 1fr 1fr 1fr;
 grid-template-columns: 0.38fr 1fr 0.38fr;
 grid-template-columns: 0.5fr 1.62fr 0.5fr;
 ```
 
 Use the trendy 3 column layout and switch to 2 columns depending on the scale. The scale is set after checking the user's device details.
-```
+```css
 grid-template-columns: 0.5fr 1.62fr 0.5fr;
 grid-template-columns: 0.5fr 1.62fr;
 ```
 
 Load from file. I don't do it this way anymore
-```js
+```html
 <script>
 function readFile(database_file_name) {
     fetch(database_file_name, {mode: 'cors'})
