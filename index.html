@@ -91,9 +91,26 @@ index.html
 <script>
 // index.html Website Kutchup 2025
 function set_layout() {
+    // Column Width
     var grid_elements = document.getElementsByClassName('grid_container');
     for(i = 0; i < grid_elements.length; i++) {
-        grid_elements[i].style.gridTemplateColumns = "0.5fr 1.62fr";
+        grid_elements[i].style.gridTemplateColumns = "1fr";
+    }
+    // Padding and Margins
+    var body_elements = document.getElementsByTagName('body');
+    for(i = 0; i < body_elements.length; i++) {
+        body_elements[i].style.padding = "10px";
+        body_elements[i].style.margin = "4px";
+    }
+    var grid_left_elements = document.getElementsByClassName('grid_left');
+    for(i = 0; i < grid_left_elements.length; i++) {
+        grid_left_elements[i].style.padding = "4px";
+        grid_left_elements[i].style.margin = "4px";
+    }
+    var grid_right_elements = document.getElementsByClassName('grid_right');
+    for(i = 0; i < grid_right_elements.length; i++) {
+        grid_right_elements[i].style.padding = "4px";
+        grid_right_elements[i].style.margin = "4px";
     }
 }
 function do_scale() {
@@ -109,7 +126,7 @@ item_001.textContent = "Electric Generator"
 item_001_detail.textContent = "Bearing, steel ball. Rotor, rotating part, balanced. Stator, stationary part"
 
 item_002.textContent = "Photovolatic Cell"
-item_002_detail.textContent = "p-n junction, Polysilicon, Wafer. Single crystal. p-type Layer, Dopant Acceptors, Doping one side of the wafer. Often with diffusion of dopant gas at high temperatures. e.g. phosphorus oxychloride. n-type Layer, Dopant Donors, Doping one side of the wafer. Often with diffusion of dopant gas at high temperatures. e.g. boron tribromide"
+item_002_detail.textContent = "p-n junction, Polysilicon, Wafer. Single crystal. p-type Layer, Dopant Acceptors, e.g. phosphorus oxychloride. n-type Layer, Dopant Donors, Doping one side of the wafer. Often with diffusion of dopant gas at high temperatures. e.g. boron tribromide"
 
 // item_001_link.href = "detail.html"
 // item_001_link.textContent = "Link"

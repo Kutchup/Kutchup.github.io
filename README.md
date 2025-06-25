@@ -174,6 +174,8 @@ for(i = 0; i < grid_elements.length; i++) {
 </script>
 ```
 
+The `body` tag has a default "user agent stylesheet" on the browser. `body` tag "user agent stylesheet" has a default `margin 8px`. Elements for grid and layout inherit stylesheet from body.
+
 # Ideas
 
 Set a nice icon for the user's bookmarks. Apparently most browsers look in the root directory by default but I have used the most common name scheme and attached the file to the html code with one minimal string `favicon.ico`.
@@ -267,12 +269,27 @@ console.log("grd " + grd) // 0.3819660112501052
 ```
 
 Hyperlinks change colour to lighter blue when visited
-```
+```html
 <style>
 a:visited {
     color: rgb(158, 158, 255);
 }
 </style>
+```
+
+Layout and scale don't activate without changing screen resolution
+```js
+if(scale == 1){set_layout();} // testing
+```
+
+Log the number of elements being changed by the layout function
+```js
+console.log("grid_container Class: " + grid_elements.length);
+```
+
+Funky 2 column override for mobile layout
+```js
+grid_elements[i].style.gridTemplateColumns = "0.5fr 1.62fr"
 ```
 
 # To Do
