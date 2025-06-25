@@ -61,7 +61,7 @@ software.html
 <!-- λ #-----------------------------# Centre Column #-----------------------------# π -->
 <div>
 
-<p id="instructions" class="style_instructions">Safety: Time Bomb Warning</p>
+<p id="instructions" class="style_instructions">Green Energy</p>
 
 <h1>Kutchup</h1>
 <h3 id="item_001"></h3>
@@ -117,9 +117,31 @@ software.html
 <script>
 // software.html Website Kutchup 2025
 function set_layout() {
+    // Column Width
     var grid_elements = document.getElementsByClassName('grid_container');
+    console.log("grid_container Class: " + grid_elements.length);
     for(i = 0; i < grid_elements.length; i++) {
         grid_elements[i].style.gridTemplateColumns = "0.5fr 1.62fr";
+    }
+
+    // Padding and Margins
+    var body_elements = document.getElementsByTagName('body');
+    console.log("body Tag: " + body_elements.length);
+    for(i = 0; i < body_elements.length; i++) {
+        body_elements[i].style.padding = "0px";
+        body_elements[i].style.margin = "1px";
+    }
+    var grid_left_elements = document.getElementsByClassName('grid_left');
+    console.log("grid_left Class: " + grid_left_elements.length);
+    for(i = 0; i < grid_left_elements.length; i++) {
+        grid_left_elements[i].style.padding = "0px";
+        grid_left_elements[i].style.margin = "1px";
+    }
+    var grid_right_elements = document.getElementsByClassName('grid_right');
+    console.log("grid_right Class: " + grid_right_elements.length);
+    for(i = 0; i < grid_right_elements.length; i++) {
+        grid_right_elements[i].style.padding = "0px";
+        grid_right_elements[i].style.margin = "1px";
     }
 }
 function do_scale() {
@@ -127,6 +149,7 @@ function do_scale() {
     if(window.screen.width < 500){scale = 0.5}
     else if(window.screen.width > 2600){scale = 2}
     if(scale == 0.5){set_layout();}
+    // if(scale == 1){set_layout();} // testing
 }
 function run() {
 // λ #-----------------------------# Run Website #-----------------------------# π
