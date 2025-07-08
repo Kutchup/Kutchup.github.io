@@ -292,6 +292,14 @@ Funky 2 column override for mobile layout
 grid_elements[i].style.gridTemplateColumns = "0.5fr 1.62fr"
 ```
 
+Set layout for all elements with the same name but javascript usually returns a list of size 1
+```
+var grid_elements = document.getElementsByClassName('grid_container');
+for(i = 0; i < grid_elements.length; i++) {
+    grid_elements[i].style.gridTemplateColumns = "1fr";
+}
+```
+
 # To Do
 
 - [x] Load the centre list items from a file. Parse and stringify to enable links in text. Give up on json
@@ -324,3 +332,4 @@ grid_elements[i].style.gridTemplateColumns = "0.5fr 1.62fr"
 
 - [x] Scale function. Javascript check the screen size, set a discrete scale float and alter the website layout. Scale factor 2 for screens greater than 4K which is a bit of a novelty
 
+- [ ] To Do: Better paragraphs with a system for new lines and inline links. Improve elements with id `item_` such as `item_001` for main body text paragraphs

@@ -108,7 +108,7 @@ activity.html
 <dd>Comment</dd>
 <dt><a href="index.html">Game</a></dt>
 <dd>Add me as a friend</dd>
-<dt><a href="index.html">Article</a></dt>
+<dt><a href="https://www.bankofengland.co.uk/news">Article</a></dt>
 <dd>Science</dd>
 </dl>
 </div>
@@ -118,26 +118,18 @@ activity.html
 // activity.html Website Kutchup 2025
 function set_layout() {
     // Column Width
-    var grid_elements = document.getElementsByClassName('grid_container');
-    for(i = 0; i < grid_elements.length; i++) {
-        grid_elements[i].style.gridTemplateColumns = "1fr";
-    }
+    var grid_element = document.getElementsByClassName('grid_container')[0];
+    grid_element.style.gridTemplateColumns = "1fr";
     // Padding and Margins
-    var body_elements = document.getElementsByTagName('body');
-    for(i = 0; i < body_elements.length; i++) {
-        body_elements[i].style.padding = "10px";
-        body_elements[i].style.margin = "4px";
-    }
-    var grid_left_elements = document.getElementsByClassName('grid_left');
-    for(i = 0; i < grid_left_elements.length; i++) {
-        grid_left_elements[i].style.padding = "4px";
-        grid_left_elements[i].style.margin = "4px";
-    }
-    var grid_right_elements = document.getElementsByClassName('grid_right');
-    for(i = 0; i < grid_right_elements.length; i++) {
-        grid_right_elements[i].style.padding = "4px";
-        grid_right_elements[i].style.margin = "4px";
-    }
+    var body_element = document.getElementsByTagName('body')[0];
+    body_element.style.padding = "10px";
+    body_element.style.margin = "4px";
+    var grid_left_element = document.getElementsByClassName('grid_left')[0];
+    grid_left_element.style.padding = "4px";
+    grid_left_element.style.margin = "4px";
+    var grid_right_element = document.getElementsByClassName('grid_right')[0];
+    grid_right_element.style.padding = "4px";
+    grid_right_element.style.margin = "4px";
 }
 function do_scale() {
     let scale = 1
