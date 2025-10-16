@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Network</title>
+  <link rel="icon" href="/favicon.ico">
+  <meta name="description" content="Advanced Critical Path Analysis Visualisation">
+  <meta name="viewport" content="width=900, initial-scale=1.0">
+  <style>
+    body {
+      background: #161824;
+      color: #f5f5fa;
+      font-family: 'Inter', system-ui, Arial, sans-serif;
+      margin: 0; padding: 0;
+      display: flex; flex-direction: column; align-items: center;
+      min-height: 100vh;
+    }
+    #container {
+      background: #22243a;
+      margin: 40px 0 0 0;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px #0008;
+      padding: 30px 32px 20px 32px;
+      max-width: 1000px;
+      min-width: 900px;
+    }
+    #controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+    button, select {
+      background: #2c355c;
+      color: #fff;
+      border: none;
+      padding: 11px 22px;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-family: inherit;
+      cursor: pointer;
+      margin: 0;
+      transition: background 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 6px #0002;
+    }
+    button:hover, select:focus {
+      background: #4161c4;
+    }
+    label {
+      margin-right: 6px;
+      font-size: 1rem;
+      color: #90c2ff;
+    }
+    svg {
+      background: #1a1b25;
+      border-radius: 8px;
+      display: block;
+      margin: 0 auto 10px auto;
+      box-shadow: 0 2px 24px #0008;
+      width: 900px;
+      height: 540px;
+      overflow: visible;
+    }
+    .node {
+      cursor: pointer;
+      transition: r 0.2s;
+      stroke: #22243a;
+      stroke-width: 4;
+      filter: drop-shadow(0 2px 8px #0004);
+    }
+    .node.critical {
+      stroke: #ffe066;
+      stroke-width: 6;
+      filter: drop-shadow(0 0 12px #fff599);
+    }
+    .edge {
+      stroke: #7295c9;
+      stroke-width: 2.7;
+      marker-end: url(#arrow);
+      transition: stroke 0.25s, stroke-width 0.2s;
+      opacity: 0.88;
+    }
+    .edge.critical {
+      stroke: #ffe066;
+      stroke-width: 5;
+      filter: drop-shadow(0 0 8px #ffe066cc);
+      opacity: 1.0;
+    }
+    .edge-label {
+      fill: #e2eaff;
+      font-size: 13.5px;
+      pointer-events: none;
+      text-shadow: 1px 1px 2px #000a;
+      font-family: 'Jetbrains Mono', 'Menlo', 'Consolas', monospace;
+    }
+    .edge-label.slack {
+      fill: #f8864a;
+      font-size: 12px;
+      font-style: italic;
+    }
+    .node-label {
+      fill: #fff;
+      font-size: 18px;
+      pointer-events: none;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px #000a;
+    }
+    .node-times {
+      fill: #a5d1ff;
+      font-size: 14px;
+      pointer-events: none;
+      text-shadow: 1px 1px 2px #000a;
+    }
+    .node-info {
+      fill: #ffeb3b;
+      font-size: 10px;
+      font-style: italic;
+    }
+    .node:hover { filter: drop-shadow(0 0 18px #9cf9); }
+    .tooltip {
+      position: absolute;
+      z-index: 10;
+      pointer-events: none;
+      background: #22243aee;
+      color: #fff;
+      padding: 8px 13px;
+      border-radius: 6px;
+      font-size: 1rem;
+      box-shadow: 0 2px 8px #000b;
+      min-width: 160px;
+      max-width: 360px;
+      font-family: 'Inter', system-ui, Arial, sans-serif;
+      display: none;
+    }
+    #legend {
+      margin-top: 6px;
+      font-size: 16px;
+      text-align: center;
+      color: #b3e5fc;
+    }
+    #legend span {
+      display: inline-block;
+      margin: 0 10px;
+      padding: 0 8px;
+      border-radius: 3px;
+    }
+    #legend .crit {
+      background: #ffe06655;
+      color: #b28300;
+      font-weight: bold;
+    }
+    #legend .edge {
+      color: #b3e5fc;
+    }
+    .info-panel {
+      background: #1a1b25;
+      border-radius: 8px;
+      margin: 14px 0 0 0;
+      padding: 13px 20px;
+      font-size: 1rem;
+      color: #f5f5fa;
+      box-shadow: 0 2px 14px #0005;
+    }
+    .info-panel strong {
+      color: #ffe066;
+      font-weight: bold;
+    }
+    .info-panel table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+    .info-panel th, .info-panel td {
+      padding: 3px 7px;
+      border-bottom: 1px solid #2c355c;
+    }
+    .info-panel th {
+      color: #97c3ff;
+      font-weight: 600;
+      background: #181c28;
+    }
+    .info-panel td {
+      font-family: 'Jetbrains Mono', 'Menlo', 'Consolas', monospace;
+      font-size: 1.01rem;
+    }
+    .info-panel tr:last-child td { border-bottom: none; }
+    @media (max-width: 1020px) {
+      #container, svg { min-width: 99vw; max-width: 99vw; width:99vw; }
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="controls">
+      <button id="regen">New Network</button>
+      <button id="animate">Animate Critical Path</button>
+      <label for="numNodes">Nodes:</label>
+      <select id="numNodes">
+        <option value="7">7</option>
+        <option value="8" selected>8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="12">12</option>
+      </select>
+      <label for="edgeDensity">Edges:</label>
+      <select id="edgeDensity">
+        <option value="sparse">Sparse</option>
+        <option value="normal" selected>Normal</option>
+        <option value="dense">Dense</option>
+      </select>
+    </div>
+    <svg id="svg" width="900" height="540"></svg>
+    <div id="legend">
+      <span class="crit">Critical Path</span>
+      <span class="edge">Edge: [capacity/slack]</span>
+      <span>Node: Early/Late</span>
+    </div>
+    <div class="info-panel" id="infoPanel">
+      <!-- Dynamic CPM statistics and table here -->
+    </div>
+  </div>
+  <div class="tooltip" id="tooltip"></div>
+  <script>
+    // Helper functions: random, shuffle, etc.
+    function randomInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+    function shuffle(arr) { for(let i=arr.length-1; i>0; i--) { let j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+
+    // DAG generator with edge density and node count config
+    function generateDAG(nNodes, edgeDensity) {
+      // Edge probability controls
+      let prob = {sparse: 0.36, normal: 0.53, dense: 0.92}[edgeDensity];
+      const nodes = [{id:0,name:"S"}];
+      for(let i=1; i<nNodes-1; ++i)
+        nodes.push({id:i, name:String.fromCharCode(64+i)});
+      nodes.push({id:nNodes-1, name:"T"});
+      // Random edge generation
+      const edges = [];
+      for(let i=0; i<nNodes-1; ++i) {
+        for(let j=i+1; j<nNodes; ++j) {
+          if(i==0 || j==nNodes-1 || Math.random()<prob) {
+            edges.push({from:nodes[i].id, to:nodes[j].id, capacity: randomInt(90, 1110)});
+          }
+        }
+      }
+      // Ensure every node except S has a predecessor and T has a predecessor
+      for(let j=1; j<nNodes; ++j) {
+        if(!edges.some(e=>e.to===nodes[j].id))
+          edges.push({from:randomInt(0,j-1), to:nodes[j].id, capacity: randomInt(90,1110)});
+      }
+      // Ensure every node except T has a successor
+      for(let i=0; i<nNodes-1; ++i) {
+        if(!edges.some(e=>e.from===nodes[i].id))
+          edges.push({from:nodes[i].id, to:randomInt(i+1,nNodes-1), capacity: randomInt(90,1110)});
+      }
+      // Remove duplicates
+      const seen = new Set(), dedup=[];
+      for(const e of edges) {
+        let key = `${e.from}->${e.to}`;
+        if(!seen.has(key)) { seen.add(key); dedup.push(e); }
+      }
+      return {nodes, edges: dedup};
+    }
+
+    // CPM calculations (early/late/slack/critical path)
+    function criticalPath({nodes, edges}) {
+      // Adjacency
+      const adj = {}, rev = {};
+      nodes.forEach(n=>{adj[n.id]=[]; rev[n.id]=[];});
+      edges.forEach(e=>{ adj[e.from].push({to:e.to, cap:e.capacity, e}); rev[e.to].push({from:e.from, cap:e.capacity, e}); });
+
+      // Topological order
+      const visited={}, order=[];
+      function dfs(u) { visited[u]=1; adj[u].forEach(({to})=>{if(!visited[to])dfs(to);}); order.push(u);}
+      dfs(nodes[0].id); order.reverse();
+
+      // Early times
+      const early={}; early[nodes[0].id]=0;
+      for(let u of order) {
+        let max = 0;
+        rev[u].forEach(({from,cap})=>{ max=Math.max(max, early[from]+cap); });
+        if(u!==nodes[0].id) early[u]=max;
+      }
+      const duration = early[nodes[nodes.length-1].id];
+
+      // Late times
+      const late={}; late[nodes[nodes.length-1].id]=duration;
+      for(let i=order.length-1;i>=0;--i) {
+        let u=order[i], min=late[u]!==undefined?late[u]:Infinity;
+        adj[u].forEach(({to,cap})=>{ min=Math.min(min, late[to]-cap); });
+        if(u!==nodes[nodes.length-1].id) late[u]=min;
+      }
+
+      // Slack per edge/node
+      const edgeSlack = {};
+      edges.forEach(e=>{
+        edgeSlack[`${e.from}->${e.to}`] = late[e.to]-early[e.from]-e.capacity;
+      });
+      const nodeSlack = {};
+      nodes.forEach(n=>{ nodeSlack[n.id]=late[n.id]-early[n.id]; });
+
+      // Critical path edges (zero slack)
+      const critEdges = edges.filter(e=>edgeSlack[`${e.from}->${e.to}`]===0);
+      // Critical nodes: on a path of only crit edges from S to T
+      const critNodes = new Set();
+      function markCrit(u) {
+        critNodes.add(u);
+        critEdges.forEach(e=>{ if(e.from===u && !critNodes.has(e.to)) markCrit(e.to); });
+      }
+      markCrit(nodes[0].id);
+
+      // All critical paths (find all S-T paths using only crit edges)
+      let allCritPaths = [];
+      function dfsPath(u, path=[]) {
+        path.push(u);
+        if(u===nodes[nodes.length-1].id) allCritPaths.push([...path]);
+        else critEdges.filter(e=>e.from===u).forEach(e=>dfsPath(e.to, path));
+        path.pop();
+      }
+      dfsPath(nodes[0].id);
+
+      return {early, late, edgeSlack, nodeSlack, critEdges, critNodes, duration, allCritPaths};
+    }
+
+    // Sugiyama-like layout: assign layers, spread nodes vertically
+    function layoutNodes(nodes, edges) {
+      // Layer by longest path from S
+      const layer={}, q=[nodes[0].id];
+      layer[nodes[0].id]=0;
+      while(q.length) {
+        const u=q.shift();
+        edges.filter(e=>e.from===u).forEach(e=>{
+          let l=layer[u]+1;
+          if(layer[e.to]==null || l>layer[e.to]) { layer[e.to]=l; q.push(e.to);}
+        });
+      }
+      const maxLayer = Math.max(...Object.values(layer));
+      const layers = [];
+      for(let i=0;i<=maxLayer;++i) layers[i]=[];
+      nodes.forEach(n=>layers[layer[n.id]].push(n));
+      // Jitter for parallel edges
+      nodes.forEach(n=>{
+        let l=layer[n.id], idx=layers[l].indexOf(n), count=layers[l].length;
+        n.x = 110 + l*(700/maxLayer);
+        n.y = 70 + (idx+1)*(420/(count+1)) + randomInt(-8,8);
+      });
+      // Save layer for info
+      nodes.forEach(n=>n.layer=layer[n.id]);
+    }
+
+    // Drawing and interactivity
+    function drawGraph({nodes, edges}, cpm, highlightCrit=false, animateStep=null, hoverNode=null, hoverEdge=null) {
+      const svg = document.getElementById("svg");
+      svg.innerHTML = `
+        <defs>
+          <marker id="arrow" markerWidth="16" markerHeight="16" refX="13" refY="8" orient="auto" markerUnits="strokeWidth">
+            <path d="M2,2 L14,8 L2,14 L6,8 Z" fill="#b3e5fc"/>
+          </marker>
+        </defs>
+      `;
+      // Edges
+      edges.forEach((e,i) => {
+        const from = nodes.find(n=>n.id===e.from), to = nodes.find(n=>n.id===e.to);
+        const isCrit = cpm.critEdges.includes(e);
+        let edgeClass = 'edge';
+        if(isCrit && (highlightCrit || (animateStep!==null && animateStep>=0 && animateStep>=cpm.critEdges.indexOf(e))))
+          edgeClass += ' critical';
+        if(hoverEdge && hoverEdge.from===e.from && hoverEdge.to===e.to) edgeClass += ' critical';
+        // Curve for parallel edges
+        let dx=to.x-from.x, dy=to.y-from.y, dr=Math.sqrt(dx*dx+dy*dy)*0.23;
+        let curve = Math.abs(dy)>18? `Q ${(from.x+to.x)/2+dr} ${(from.y+to.y)/2-dr}, ${to.x} ${to.y}`:`${to.x},${to.y}`;
+        svg.innerHTML += `
+          <path d="M${from.x},${from.y} L${to.x},${to.y}" class="${edgeClass}" data-edge="${e.from}->${e.to}" />
+          <text x="${(from.x*2+to.x)/3}" y="${(from.y*2+to.y)/3-8}" class="edge-label">${e.capacity}</text>
+          <text x="${(from.x+to.x)/2+16}" y="${(from.y+to.y)/2-10}" class="edge-label slack">slack: ${cpm.edgeSlack[`${e.from}->${e.to}`]}</text>
+        `;
+      });
+      // Nodes
+      nodes.forEach((n,i) => {
+        let nodeClass = 'node';
+        if(cpm.critNodes.has(n.id) && (highlightCrit || animateStep!==null)) nodeClass += ' critical';
+        if(hoverNode && hoverNode.id===n.id) nodeClass += ' critical';
+        svg.innerHTML += `
+          <circle cx="${n.x}" cy="${n.y}" r="28" class="${nodeClass}" data-node="${n.id}" />
+          <text x="${n.x}" y="${n.y+6}" class="node-label" text-anchor="middle">${n.name}</text>
+          <text x="${n.x}" y="${n.y+34}" class="node-times" text-anchor="middle">
+            ${cpm.early[n.id]}/${cpm.late[n.id]}
+          </text>
+        `;
+      });
+      // Events
+      setTimeout(()=>{
+        // Tooltip logic
+        let tooltip = document.getElementById("tooltip");
+        svg.querySelectorAll('circle').forEach(elem=>{
+          elem.onmousemove = ev => {
+            let nid=Number(elem.getAttribute('data-node'));
+            let n=nodes.find(nd=>nd.id===nid);
+            showTooltip(ev, `
+              <b>Node ${n.name}</b><br>
+              Layer: <b>${n.layer}</b><br>
+              Early time: <b>${cpm.early[n.id]}</b><br>
+              Late time: <b>${cpm.late[n.id]}</b><br>
+              Slack: <b>${cpm.nodeSlack[n.id]}</b>
+            `);
+            drawGraph({nodes,edges},cpm,highlightCrit,animateStep,n,null);
+          };
+          elem.onmouseleave = ev => { hideTooltip(); drawGraph({nodes,edges},cpm,highlightCrit,animateStep,null,null);}
+        });
+        svg.querySelectorAll('path').forEach(elem=>{
+          elem.onmousemove = ev => {
+            let [from,to]=elem.getAttribute('data-edge').split('->').map(Number), e=edges.find(e=>e.from===from&&e.to===to);
+            showTooltip(ev, `
+              <b>Edge ${nodes.find(n=>n.id===from).name}&rarr;${nodes.find(n=>n.id===to).name}</b><br>
+              Capacity: <b>${e.capacity}</b><br>
+              Slack: <b>${cpm.edgeSlack[`${from}->${to}`]}</b>
+              ${cpm.edgeSlack[`${from}->${to}`]===0 ? '<br><span style="color:#ffe066;">Critical Path</span>' : ''}
+            `);
+            drawGraph({nodes,edges},cpm,highlightCrit,animateStep,null,{from,to});
+          };
+          elem.onmouseleave = ev => { hideTooltip(); drawGraph({nodes,edges},cpm,highlightCrit,animateStep,null,null);}
+        });
+      },30);
+    }
+
+    function showTooltip(ev, html) {
+      const tt = document.getElementById("tooltip");
+      tt.innerHTML=html; tt.style.display='block';
+      let rect = tt.getBoundingClientRect(), x=ev.clientX, y=ev.clientY;
+      tt.style.left = (x+12)+'px';
+      tt.style.top = (y-rect.height/2)+'px';
+    }
+    function hideTooltip() {
+      const tt = document.getElementById("tooltip");
+      tt.style.display='none';
+    }
+
+    // Animation
+    let animTimeout = null;
+    function animateCriticalPath(graph, cpm) {
+      let step = 0;
+      function next() {
+        drawGraph(graph, cpm, false, step);
+        step++;
+        if(step < cpm.critEdges.length) {
+          animTimeout = setTimeout(next, 750);
+        } else {
+          setTimeout(()=>drawGraph(graph,cpm,true,null), 1100);
+        }
+      }
+      next();
+    }
+
+    // CPM stats/info panel
+    function showInfoPanel(graph, cpm) {
+      const panel = document.getElementById("infoPanel");
+      let html = `
+        <strong>Project Duration:</strong> <span style="color:#ffe066;font-size:1.18em">${cpm.duration}</span><br>
+        <strong>Critical Path(s):</strong> 
+        <span style="color:#ffe066">${cpm.allCritPaths.map(path=>path.map(id=>graph.nodes.find(n=>n.id===id).name).join('&rarr;')).join('; ')}</span>
+        <br>
+        <strong>Node Schedule Table</strong>:
+        <table>
+          <tr>
+            <th>Node</th><th>Layer</th><th>Early</th><th>Late</th><th>Slack</th>
+          </tr>
+          ${graph.nodes.map(n=>
+            `<tr>
+              <td style="font-weight:600">${n.name}</td>
+              <td>${n.layer}</td>
+              <td>${cpm.early[n.id]}</td>
+              <td>${cpm.late[n.id]}</td>
+              <td style="color:${cpm.nodeSlack[n.id]==0?'#ffe066':'#f8864a'};font-weight:bold">${cpm.nodeSlack[n.id]}</td>
+            </tr>`).join('')}
+        </table>
+        <strong>Edge Slack Table</strong>:
+        <table>
+          <tr>
+            <th>From</th><th>To</th><th>Capacity</th><th>Slack</th>
+          </tr>
+          ${graph.edges.map(e=>
+            `<tr>
+              <td>${graph.nodes.find(n=>n.id===e.from).name}</td>
+              <td>${graph.nodes.find(n=>n.id===e.to).name}</td>
+              <td>${e.capacity}</td>
+              <td style="color:${cpm.edgeSlack[`${e.from}->${e.to}`]==0?'#ffe066':'#f8864a'};font-weight:bold">${cpm.edgeSlack[`${e.from}->${e.to}`]}</td>
+            </tr>`).join('')}
+        </table>
+        <span style="color:#97c3ff;">Advanced Critical Path Analysis Visualisation. Hover nodes/edges for details.</span>
+      `;
+      panel.innerHTML = html;
+    }
+
+    // Main logic
+    let graph, cpm;
+    function regenerate() {
+      if(animTimeout) clearTimeout(animTimeout);
+      const nNodes = Number(document.getElementById("numNodes").value);
+      const edgeDensity = document.getElementById("edgeDensity").value;
+      graph = generateDAG(nNodes, edgeDensity);
+      layoutNodes(graph.nodes, graph.edges);
+      cpm = criticalPath(graph);
+      drawGraph(graph, cpm, true);
+      showInfoPanel(graph, cpm);
+    }
+    document.getElementById("regen").onclick = regenerate;
+    document.getElementById("animate").onclick = function() {
+      if(animTimeout) clearTimeout(animTimeout);
+      animateCriticalPath(graph, cpm);
+    };
+    document.getElementById("numNodes").onchange = regenerate;
+    document.getElementById("edgeDensity").onchange = regenerate;
+
+    // Initial
+    regenerate();
+  </script>
+</body>
+</html>

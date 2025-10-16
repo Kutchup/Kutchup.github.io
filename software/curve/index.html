@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Curve</title>
+  <link rel="icon" href="/favicon.ico">
+  <meta name="description" content="Bezier Curve Editor">
+  <style>
+    body { 
+      background: #222; 
+      color: #eee; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      margin: 0; 
+      height: 100vh; 
+      justify-content: center;
+    }
+    canvas {
+      background: #181818;
+      border: 1px solid #444;
+      cursor: crosshair;
+      box-shadow: 0 0 16px #000a;
+    }
+    h1 { font-size: 1.2em; margin-bottom: 0.5em; }
+  </style>
+</head>
+<body>
+  <h1>Bezier Curve Editor</h1>
+  <canvas id="bezier" width="800" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById('bezier');
+    const ctx = canvas.getContext('2d');
+
+    // Grid step size
+    const gridStep = 25;
+
+    // Initial control points for a cubic Bezier
+    let points = [
+      { x: 100, y: 500 },
+      { x: 200, y: 100 },
+      { x: 600, y: 100 },
+      { x: 700, y: 500 }
+    ];
+
+    let dragging = null; // which point is being dragged
+
+    function drawGrid() {
+      ctx.save();
+      ctx.strokeStyle = "#333";
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += gridStep) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += gridStep) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawCurve() {
+      ctx.save();
+      ctx.strokeStyle = "#45f6";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      ctx.bezierCurveTo(
+        points[1].x, points[1].y,
+        points[2].x, points[2].y,
+        points[3].x, points[3].y
+      );
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawControlLines() {
+      ctx.save();
+      ctx.strokeStyle = "#fa4a";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      ctx.lineTo(points[1].x, points[1].y);
+      ctx.lineTo(points[2].x, points[2].y);
+      ctx.lineTo(points[3].x, points[3].y);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawPoints() {
+      points.forEach((pt, idx) => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 10, 0, 2 * Math.PI);
+        ctx.fillStyle = idx === 0 || idx === 3 ? "#0afc" : "#fd0c";
+        ctx.fill();
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+      });
+    }
+
+    function redraw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawGrid();
+      drawCurve();
+      drawControlLines();
+      drawPoints();
+    }
+
+    // Mouse event helpers
+    function getMousePos(e) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left),
+        y: (e.clientY - rect.top)
+      };
+    }
+
+    function findPoint(pos) {
+      return points.findIndex(pt =>
+        (pt.x - pos.x) ** 2 + (pt.y - pos.y) ** 2 < 12 ** 2
+      );
+    }
+
+    canvas.addEventListener('mousedown', e => {
+      const pos = getMousePos(e);
+      const idx = findPoint(pos);
+      if (idx !== -1) {
+        dragging = idx;
+      }
+    });
+
+    canvas.addEventListener('mousemove', e => {
+      if (dragging !== null) {
+        const pos = getMousePos(e);
+        points[dragging].x = pos.x;
+        points[dragging].y = pos.y;
+        redraw();
+      }
+    });
+
+    canvas.addEventListener('mouseup', e => {
+      dragging = null;
+    });
+    canvas.addEventListener('mouseleave', e => {
+      dragging = null;
+    });
+
+    // Initial draw
+    redraw();
+  </script>
+</body>
+</html>

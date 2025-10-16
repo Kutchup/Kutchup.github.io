@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Controller</title>
+  <link rel="icon" href="/favicon.ico">
+  <meta name="description" content="Input Tester">
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #222;
+      color: #eee;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      align-items: flex-start;
+      margin-top: 40px;
+    }
+    .image-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .image-col img {
+      width: 300px;
+      margin-bottom: 24px;
+      background: #444;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px #000a;
+      padding: 10px;
+    }
+    .log-col {
+      width: 400px;
+      background: #181818;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px #000a;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .log-entry {
+      margin-bottom: 10px;
+      font-size: 1.1em;
+      border-bottom: 1px solid #3336;
+      padding-bottom: 6px;
+      word-break: break-word;
+    }
+    .log-entry:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+  <h1 style="text-align:center;margin-top:24px;">Keyboard & Controller Input Tester</h1>
+  <div class="container">
+    <div class="image-col">
+      <p>Gamepad</p>
+      <p>Keyboard</p>
+      <!-- <img src="controller.png" alt="Controller" id="controller-img">
+      <img src="keyboard.png" alt="Keyboard" id="keyboard-img"> -->
+    </div>
+    <div class="log-col" id="log">
+      <!-- Log entries go here -->
+    </div>
+  </div>
+  <script>
+    const logCol = document.getElementById('log');
+
+    function logInput(message) {
+      const div = document.createElement('div');
+      div.className = 'log-entry';
+      div.textContent = `[${(new Date()).toLocaleTimeString()}] ${message}`;
+      logCol.appendChild(div);
+      logCol.scrollTop = logCol.scrollHeight;
+    }
+
+    // Keyboard events
+    window.addEventListener('keydown', (e) => {
+      logInput(`KeyDown: ${e.key} (code: ${e.code})`);
+    });
+
+    window.addEventListener('keyup', (e) => {
+      logInput(`KeyUp: ${e.key} (code: ${e.code})`);
+    });
+
+    // Gamepad events
+    let gamepadStates = {};
+
+    function pollGamepads() {
+      const pads = navigator.getGamepads();
+      for (let i = 0; i < pads.length; ++i) {
+        const pad = pads[i];
+        if (!pad) continue;
+        if (!gamepadStates[pad.index]) {
+          gamepadStates[pad.index] = pad.buttons.map(b => b.pressed);
+          logInput(`Gamepad connected: ${pad.id} (index ${pad.index})`);
+          continue;
+        }
+        // Compare previous state to current
+        pad.buttons.forEach((btn, idx) => {
+          if (btn.pressed && !gamepadStates[pad.index][idx]) {
+            logInput(`Gamepad ${pad.index}: Button ${idx} down`);
+          }
+          if (!btn.pressed && gamepadStates[pad.index][idx]) {
+            logInput(`Gamepad ${pad.index}: Button ${idx} up`);
+          }
+        });
+        // Axes (joysticks)
+        pad.axes.forEach((axis, idx) => {
+          // Only log if moved significantly
+          if (!gamepadStates[pad.index].axes) gamepadStates[pad.index].axes = [];
+          if (Math.abs(axis - (gamepadStates[pad.index].axes[idx] || 0)) > 0.1) {
+            logInput(`Gamepad ${pad.index}: Axis ${idx} = ${axis.toFixed(2)}`);
+            gamepadStates[pad.index].axes[idx] = axis;
+          }
+        });
+        // Update state
+        gamepadStates[pad.index] = pad.buttons.map(b => b.pressed);
+        gamepadStates[pad.index].axes = pad.axes.slice();
+      }
+      requestAnimationFrame(pollGamepads);
+    }
+
+    window.addEventListener('gamepadconnected', (e) => {
+      logInput(`Gamepad connected: ${e.gamepad.id} (index ${e.gamepad.index})`);
+      gamepadStates[e.gamepad.index] = e.gamepad.buttons.map(b => b.pressed);
+      gamepadStates[e.gamepad.index].axes = e.gamepad.axes.slice();
+    });
+
+    window.addEventListener('gamepaddisconnected', (e) => {
+      logInput(`Gamepad disconnected: ${e.gamepad.id} (index ${e.gamepad.index})`);
+      delete gamepadStates[e.gamepad.index];
+    });
+
+    // Start polling for gamepads
+    pollGamepads();
+  </script>
+</body>
+</html>
