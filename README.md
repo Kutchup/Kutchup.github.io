@@ -176,6 +176,21 @@ for(i = 0; i < grid_elements.length; i++) {
 
 The `body` tag has a default "user agent stylesheet" on the browser. `body` tag "user agent stylesheet" has a default `margin 8px`. Elements for grid and layout inherit stylesheet from body.
 
+# File System
+
+At first make a website with `.html` files which can be tested in a browser. The browser loads files from the computer file system. A server 'serves' files from the server file system. File systems are a way of storing documents in memory. The computer and server are slightly different. The browser works for both. The ideal server file system does not seem to be compatible with a local computer file system.
+
+```
+/project-root
+  ├── index.html
+  └── blog/
+       └── index.html
+```
+
+Learn the HTML link syntax. `/page` starts from root. `./page` starts from current working directory (CWD). `../page` starts from one directory up from CWD. `page` is relative to CWD. `page/` indicates that `page` is a foler type. Other files types are indicated with a following `.` such as `page.html`.
+
+A server always provides `index.html` from a folder type.
+
 # Ideas
 
 Set a nice icon for the user's bookmarks. Apparently most browsers look in the root directory by default but I have used the most common name scheme and attached the file to the html code with one minimal string `favicon.ico`.
