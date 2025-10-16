@@ -187,7 +187,7 @@ At first make a website with `.html` files which can be tested in a browser. The
        └── index.html
 ```
 
-Learn the HTML link syntax. `/page` starts from root. `./page` starts from current working directory (CWD). `../page` starts from one directory up from CWD. `page` is relative to CWD. `page/` indicates that `page` is a foler type. Other files types are indicated with a following `.` such as `page.html`.
+Learn the html link syntax. `/page` starts from root. `./page` starts from current working directory (CWD). `../page` starts from one directory up from CWD. `page` is relative to CWD. `page/` indicates that `page` is a foler type. Other files types are indicated with a following `.` such as `page.html`.
 
 A server always provides `index.html` from a folder type.
 
