@@ -1,316 +1,568 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Walk</title>
-  <link rel="icon" href="/favicon.ico">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Brownian Motion Random Walk Visualisation">
+  <meta charset="utf-8" />
+  <title>Electrons</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    body {
-      background: #222;
-      color: #eee;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
+    :root{
+      --bg:#0b0b0b;
+      --panel:#181818;
+      --muted:#bfc7cf;
+      --card:#0f0f0f;
     }
-    h1 {
-      margin-top: 32px;
-      font-size: 2em;
+    html,body{
+      height:100%;
+      margin:0;
+      background:linear-gradient(180deg,#070707,#121212);
+      color:var(--muted);
+      font-family:Inter, "Segoe UI", Roboto, system-ui, -apple-system, "Helvetica Neue", Arial;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:14px;
+      padding:18px;
+      box-sizing:border-box;
     }
-    #controls {
-      margin: 20px 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      align-items: center;
-      justify-content: center;
+    h1{ margin:6px 0 0 0; color:#eee; font-weight:600; }
+    .controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:center;
+      max-width:1200px;
+      width:100%;
     }
-    #controls label {
-      margin-right: 8px;
-      font-size: 1em;
+    .control{
+      background:var(--panel);
+      padding:10px 12px;
+      border-radius:8px;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      color:var(--muted);
+      box-shadow:0 6px 20px #0006;
     }
-    #canvas-container {
-      background: #111;
-      border: 2px solid #444;
-      border-radius: 8px;
-      box-shadow: 0 0 16px #0008;
-      margin-bottom: 32px;
+    label{ font-size:13px; color:#ddd; white-space:nowrap; }
+    input[type="range"]{ width:150px; }
+    input[type="number"]{ width:72px; padding:6px; border-radius:6px; border:1px solid #333; background:#0b0b0b; color:#eee; }
+    select, button { padding:8px 10px; border-radius:6px; background:#0b0b0b; color:#eee; border:1px solid #2b2b2b; }
+    .canvas-wrap{
+      background:var(--card);
+      padding:12px;
+      border-radius:10px;
+      box-shadow:0 10px 40px #0008;
+      border:1px solid #222;
     }
-    canvas {
-      display: block;
-      background: #fff;
-      border-radius: 6px;
-    }
-    .info {
-      margin-bottom: 16px;
-      color: #bbb;
-      font-size: 0.95em;
-      text-align: center;
-      max-width: 650px;
-    }
-    button, input[type="range"], select {
-      font-size: 1em;
-    }
+    canvas{ display:block; background:#ffffff; border-radius:6px; }
+    .info{ max-width:1100px; text-align:center; color:#bfc7cf; font-size:13px; }
+    .small{ font-size:12px; color:#9ea7b0; }
+    .status{ margin-left:6px; color:#cdd7df; font-weight:600; }
   </style>
 </head>
 <body>
-  <h1>Brownian Motion Random Walk</h1>
+  <h1>Electrons in a Wire</h1>
+
   <div class="info">
-    Visualizes 2D Brownian motion (random walk) with advanced features: multiple walkers, trails, adjustable speed, and step size. <br>
-    Experiment with settings, pause, and resume. Ideal for educational and experimental purposes.
+    <!-- info -->
   </div>
-  <div id="controls">
-    <label>
-      Walkers:
-      <input type="number" id="numWalkers" min="1" max="100" value="1" style="width:60px;">
-    </label>
-    <label>
-      Step size:
-      <input type="range" id="stepSize" min="0.5" max="20" step="0.5" value="5">
-      <span id="stepVal">5</span> px
-    </label>
-    <label>
-      Speed:
-      <input type="range" id="speed" min="1" max="120" step="1" value="60">
-      <span id="speedVal">60</span> fps
-    </label>
-    <label>
-      Trail length:
-      <input type="range" id="trailLength" min="10" max="5000" step="10" value="500">
-      <span id="trailVal">500</span>
-    </label>
-    <label>
-      Color:
+
+  <div class="controls" aria-hidden="false">
+    <div class="control">
+      <label for="numWalkers">Walkers</label>
+      <input id="numWalkers" type="number" min="1" max="300" value="6" />
+    </div>
+
+    <div class="control">
+      <label for="stepSize">Step size</label>
+      <input id="stepSize" type="range" min="0.5" max="20" step="0.5" value="4" />
+      <span class="small" id="stepVal">4</span>px
+    </div>
+
+    <div class="control">
+      <label for="speed">Speed</label>
+      <input id="speed" type="range" min="1" max="120" step="1" value="60" />
+      <span class="small" id="speedVal">60</span> fps
+    </div>
+
+    <div class="control">
+      <label for="trailLength">Trail</label>
+      <input id="trailLength" type="range" min="10" max="5000" step="10" value="600" />
+      <span class="small" id="trailVal">600</span>
+    </div>
+
+    <div class="control">
+      <label for="colorMode">Color</label>
       <select id="colorMode">
-        <option value="single">Single</option>
         <option value="multi">Multi</option>
+        <option value="single">Single</option>
         <option value="fade">Fade</option>
       </select>
-    </label>
-    <button id="pauseBtn">Pause</button>
-    <button id="resetBtn">Reset</button>
-  </div>
-  <div id="canvas-container">
-    <canvas id="walkCanvas" width="700" height="500"></canvas>
-  </div>
-  <div class="info">
-    <strong>Tips:</strong> <br>
-    - Switch to multiple walkers for interesting interactions.<br>
-    - "Fade" color mode leaves a fading trail.<br>
-    - "Reset" recenters all walkers.<br>
-    - Adjust speed for slow-motion or fast-forward effects.
-  </div>
-  <script>
-    const canvas = document.getElementById('walkCanvas');
-    const ctx = canvas.getContext('2d');
+    </div>
 
-    // Controls
+    <div class="control">
+      <label for="wrapX">Wrap X</label>
+      <select id="wrapX">
+        <option value="true">Wrap</option>
+        <option value="false">Clamp</option>
+      </select>
+    </div>
+
+    <div class="control">
+      <button id="pauseBtn">Pause</button>
+      <button id="resetBtn">Reset</button>
+      <span class="status" id="status">Running</span>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:1200px;width:100%;">
+    <div class="control" style="min-width:220px;">
+      <label for="dcOffset">DC Offset</label>
+      <input id="dcOffset" type="range" min="-10" max="10" step="0.1" value="0" />
+      <span class="small" id="dcVal">+0.0</span> px/step
+    </div>
+
+    <div class="control" style="min-width:260px;">
+      <label><input id="acEnable" type="checkbox" checked /> AC enabled</label>
+      <label for="acAmp">AC Amp</label>
+      <input id="acAmp" type="range" min="0" max="20" step="0.1" value="3" />
+      <span class="small" id="acAmpVal">3.0</span> px
+    </div>
+
+    <div class="control" style="min-width:340px; align-items:center;">
+      <label for="acFreq">Frequency</label>
+      <input id="acFreq" type="range" min="0" max="5" step="0.01" value="0.75" />
+      <input id="acFreqNum" type="number" min="0" max="5" step="0.01" value="0.75" style="width:86px; margin-left:8px;" />
+      <span class="small" id="acFreqVal">0.75</span> Hz
+
+      <label for="acWave" style="margin-left:8px;">Wave</label>
+      <select id="acWave">
+        <option value="sine">Sine</option>
+        <option value="square">Square</option>
+        <option value="triangle">Triangle</option>
+      </select>
+    </div>
+
+    <div class="control" style="min-width:220px;">
+      <label>Instant Force</label>
+      <div style="font-weight:700;color:#fff;margin-left:8px;" id="forceVal">+0.00 px/step</div>
+    </div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="walkCanvas" width="1000" height="620" aria-label="Brownian motion canvas"></canvas>
+  </div>
+
+  <div class="info small">
+    Visualizes 2D Brownian motion (random walk) with advanced features: multiple walkers, trails, adjustable speed, and step size. Particles experience a horizontal force composed of a DC offset and a time-varying AC component (sine/square/triangle). Experiment with settings, pause, and resume. Set the waveform, amplitude and frequency to simulate AC/oscillating voltage effects. Frequency is editable by typing or using the slider. Ideal for educational and experimental purposes.
+  </div>
+
+  <script>
+    // Elements
+    const canvas = document.getElementById('walkCanvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+
     const numWalkersInput = document.getElementById('numWalkers');
     const stepSizeInput = document.getElementById('stepSize');
     const speedInput = document.getElementById('speed');
     const trailLengthInput = document.getElementById('trailLength');
     const colorModeInput = document.getElementById('colorMode');
+    const wrapXInput = document.getElementById('wrapX');
+
     const pauseBtn = document.getElementById('pauseBtn');
     const resetBtn = document.getElementById('resetBtn');
+
+    // Force controls (DC + AC)
+    const dcOffsetInput = document.getElementById('dcOffset');
+    const dcVal = document.getElementById('dcVal');
+    const acEnableInput = document.getElementById('acEnable');
+    const acAmpInput = document.getElementById('acAmp');
+    const acAmpVal = document.getElementById('acAmpVal');
+    const acFreqInput = document.getElementById('acFreq');
+    const acFreqNumInput = document.getElementById('acFreqNum');
+    const acFreqVal = document.getElementById('acFreqVal');
+    const acWaveInput = document.getElementById('acWave');
+    const forceValDisplay = document.getElementById('forceVal');
+
     const stepVal = document.getElementById('stepVal');
     const speedVal = document.getElementById('speedVal');
     const trailVal = document.getElementById('trailVal');
+    const status = document.getElementById('status');
 
-    // Parameters
-    let numWalkers = parseInt(numWalkersInput.value);
+    // State
+    let numWalkers = parseInt(numWalkersInput.value, 10);
     let stepSize = parseFloat(stepSizeInput.value);
-    let speed = parseInt(speedInput.value);
-    let trailLength = parseInt(trailLengthInput.value);
+    let speed = parseInt(speedInput.value, 10);
+    let trailLength = parseInt(trailLengthInput.value, 10);
     let colorMode = colorModeInput.value;
+    let wrapX = (wrapXInput.value === 'true');
 
-    // Animation state
     let paused = false;
     let animationFrameId = null;
     let lastTimestamp = null;
 
+    // Force parameter getters
+    function getDC() { return parseFloat(dcOffsetInput.value); }
+    function getACAmp() { return parseFloat(acAmpInput.value); }
+    function getACFreq() { return parseFloat(acFreqInput.value); }
+    function getACEnabled() { return !!acEnableInput.checked; }
+    function getWaveform() { return acWaveInput.value; }
+
     // Walker class
     class Walker {
       constructor(color) {
-        this.x = canvas.width / 2;
-        this.y = canvas.height / 2;
+        this.x = canvas.width / 2 + (Math.random()-0.5)*40;
+        this.y = canvas.height / 2 + (Math.random()-0.5)*40;
         this.color = color;
         this.trail = [{x: this.x, y: this.y}];
       }
-      step() {
-        const theta = Math.random() * 2 * Math.PI;
-        this.x = Math.max(0, Math.min(canvas.width, this.x + Math.cos(theta) * stepSize));
-        this.y = Math.max(0, Math.min(canvas.height, this.y + Math.sin(theta) * stepSize));
+      step(instantForce) {
+        // random direction
+        const theta = Math.random() * Math.PI * 2;
+        const dxRandom = Math.cos(theta) * stepSize;
+        const dyRandom = Math.sin(theta) * stepSize;
+
+        // apply horizontal force bias (instantaneous)
+        let dx = dxRandom + instantForce;
+        let dy = dyRandom;
+
+        this.x += dx;
+        this.y += dy;
+
+        // vertical clamp (no wrap in y)
+        if (this.y < 0) this.y = 0;
+        if (this.y > canvas.height) this.y = canvas.height;
+
+        // horizontal wrapping or clamp
+        if (wrapX) {
+          // robust wrap for large dx
+          while (this.x < 0) this.x += canvas.width;
+          while (this.x >= canvas.width) this.x -= canvas.width;
+        } else {
+          if (this.x < 0) this.x = 0;
+          if (this.x > canvas.width) this.x = canvas.width;
+        }
+
+        // push to trail, trim
         this.trail.push({x: this.x, y: this.y});
         if (this.trail.length > trailLength) this.trail.shift();
       }
+
       draw(trailOpacity = 0.2) {
         if (colorMode === 'fade') {
           ctx.strokeStyle = this.color;
-          ctx.globalAlpha = 1.0;
-          ctx.beginPath();
           for (let i = 1; i < this.trail.length; ++i) {
-            ctx.globalAlpha = Math.max(0.05, (i / this.trail.length) * 0.8);
-            ctx.moveTo(this.trail[i-1].x, this.trail[i-1].y);
-            ctx.lineTo(this.trail[i].x, this.trail[i].y);
+            const a = Math.max(0.03, (i / this.trail.length) * 0.8);
+            ctx.globalAlpha = a;
+            const p0 = this.trail[i-1];
+            const p1 = this.trail[i];
+            if (distance(p0, p1) > Math.max(40, stepSize * 8)) continue;
+            ctx.beginPath();
+            ctx.moveTo(p0.x, p0.y);
+            ctx.lineTo(p1.x, p1.y);
+            ctx.stroke();
           }
-          ctx.stroke();
-          ctx.globalAlpha = 1.0;
+          ctx.globalAlpha = 1;
         } else {
           ctx.strokeStyle = this.color;
           ctx.globalAlpha = trailOpacity;
           ctx.beginPath();
-          ctx.moveTo(this.trail[0].x, this.trail[0].y);
-          for (let i = 1; i < this.trail.length; ++i) {
-            ctx.lineTo(this.trail[i].x, this.trail[i].y);
+          for (let i = 0; i < this.trail.length; ++i) {
+            const p = this.trail[i];
+            if (i === 0 || distance(this.trail[i-1], p) > Math.max(40, stepSize * 8)) {
+              ctx.moveTo(p.x, p.y);
+            } else {
+              ctx.lineTo(p.x, p.y);
+            }
           }
           ctx.stroke();
-          ctx.globalAlpha = 1.0;
+          ctx.globalAlpha = 1;
         }
-        // Draw walker
+        // draw head
         ctx.fillStyle = this.color;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, 5, 0, 2*Math.PI);
+        ctx.arc(this.x, this.y, 4.5, 0, Math.PI*2);
         ctx.fill();
       }
+
       reset() {
-        this.x = canvas.width / 2;
-        this.y = canvas.height / 2;
+        this.x = canvas.width / 2 + (Math.random()-0.5)*40;
+        this.y = canvas.height / 2 + (Math.random()-0.5)*40;
         this.trail = [{x: this.x, y: this.y}];
       }
     }
 
+    function distance(a,b){
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      return Math.sqrt(dx*dx + dy*dy);
+    }
+
+    // walkers
     let walkers = [];
 
-    // Color helpers
-    function randomColor() {
-      // Vivid random color
-      const h = Math.floor(Math.random() * 360);
-      return `hsl(${h}, 85%, 55%)`;
+    function randomColor(){
+      const h = Math.floor(Math.random()*360);
+      return `hsl(${h} 85% 55%)`;
     }
 
-    function buildWalkers() {
+    function buildWalkers(){
       walkers = [];
       if (colorMode === 'single') {
-        let col = '#2196f3';
-        for (let i = 0; i < numWalkers; ++i) walkers.push(new Walker(col));
-      } else if (colorMode === 'multi') {
-        for (let i = 0; i < numWalkers; ++i) walkers.push(new Walker(randomColor()));
-      } else if (colorMode === 'fade') {
-        for (let i = 0; i < numWalkers; ++i) walkers.push(new Walker(randomColor()));
+        const col = '#ff8a65';
+        for (let i=0;i<numWalkers;i++) walkers.push(new Walker(col));
+      } else {
+        for (let i=0;i<numWalkers;i++) walkers.push(new Walker(randomColor()));
       }
     }
 
-    function resetWalkers() {
-      walkers.forEach(w => w.reset());
+    // compute instantaneous force (px per step) at time t (seconds)
+    function waveformValue(waveform, omegaT) {
+      // omegaT = 2π f t
+      if (waveform === 'sine') {
+        return Math.sin(omegaT);
+      } else if (waveform === 'square') {
+        return Math.sign(Math.sin(omegaT)) || 1;
+      } else if (waveform === 'triangle') {
+        // triangle wave via arcsin(sin) normalized to [-1,1]
+        return (2 / Math.PI) * Math.asin(Math.sin(omegaT));
+      } else {
+        return Math.sin(omegaT);
+      }
     }
 
-    // Animation
+    function computeInstantForce(timeSec) {
+      const dc = getDC();
+      if (!getACEnabled()) return dc;
+      const amp = getACAmp();
+      const freq = getACFreq();
+      const omegaT = 2 * Math.PI * freq * timeSec;
+      const wave = waveformValue(getWaveform(), omegaT);
+      return dc + amp * wave;
+    }
+
+    // drawing helpers
     function clearCanvas() {
       if (colorMode === 'fade') {
-        ctx.fillStyle = 'rgba(255,255,255,0.10)';
+        ctx.fillStyle = 'rgba(255,255,255,0.06)';
         ctx.fillRect(0,0,canvas.width,canvas.height);
       } else {
-        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0,0,canvas.width,canvas.height);
       }
     }
 
-    function draw() {
+    function drawFieldOverlay(instantForce) {
+      // draw force arrow at top center and display numeric instantaneous force and AC parameters
+      const margin = 10;
+      const cx = canvas.width / 2;
+      const y = margin + 8;
+      const maxLen = Math.min(canvas.width/3, 240);
+      // scale for visual arrow: map force magnitude to arrow length; clamp to maxLen
+      const visualScale = 16; // pixels of arrow per 1 px/step force (tunable)
+      const len = Math.min(maxLen, Math.abs(instantForce) * visualScale);
+      const dir = Math.sign(instantForce) || 1;
+      ctx.save();
+      ctx.globalAlpha = 0.95;
+      // background bar
+      ctx.fillStyle = '#0008';
+      ctx.fillRect(8, y-8, canvas.width-16, 18);
+      // center mark
+      ctx.fillStyle = '#ffffff33';
+      ctx.fillRect(canvas.width/2 - 1, y-12, 2, 24);
+      // arrow
+      ctx.beginPath();
+      ctx.strokeStyle = instantForce >= 0 ? 'rgba(46,125,50,0.98)' : 'rgba(198,40,40,0.98)';
+      ctx.lineWidth = 3;
+      ctx.moveTo(cx - dir*2, y);
+      ctx.lineTo(cx + dir * len, y);
+      ctx.stroke();
+      // arrow head
+      ctx.beginPath();
+      const headX = cx + dir * len;
+      ctx.moveTo(headX, y);
+      ctx.lineTo(headX - dir * 8, y - 6);
+      ctx.lineTo(headX - dir * 8, y + 6);
+      ctx.closePath();
+      ctx.fillStyle = instantForce >= 0 ? 'rgba(46,125,50,0.98)' : 'rgba(198,40,40,0.98)';
+      ctx.fill();
+      // text
+      ctx.fillStyle = '#e6eef6';
+      ctx.font = '12px system-ui, Arial';
+      const text = `Force = ${instantForce >= 0 ? '+' : ''}${instantForce.toFixed(2)} px/step  —  DC ${getDC().toFixed(2)}  ${getACEnabled() ? `| AC ${getACAmp().toFixed(2)}×${getWaveform()} @ ${getACFreq().toFixed(2)}Hz` : ''}`;
+      ctx.fillText(text, 16, y - 12);
+      ctx.restore();
+    }
+
+    function draw(instantForce) {
       clearCanvas();
-      let opacity = colorMode === 'multi' ? 0.18 : 0.28;
-      walkers.forEach(walker => {
-        walker.draw(opacity);
-      });
+      drawFieldOverlay(instantForce);
+      const opacity = colorMode === 'multi' ? 0.18 : 0.28;
+      walkers.forEach(w => w.draw(opacity));
     }
 
-    function stepAll() {
-      walkers.forEach(walker => walker.step());
+    function stepAll(instantForce) {
+      walkers.forEach(w => w.step(instantForce));
     }
 
-    function animate(timestamp) {
-      if (!lastTimestamp) lastTimestamp = timestamp;
+    function animate(ts) {
+      if (!lastTimestamp) lastTimestamp = ts;
       const interval = 1000 / speed;
-      if (timestamp - lastTimestamp >= interval) {
-        stepAll();
-        draw();
-        lastTimestamp = timestamp;
+      if (ts - lastTimestamp >= interval) {
+        const timeSec = ts / 1000; // use absolute time so AC phase/frequency is continuous
+        const instantForce = computeInstantForce(timeSec);
+        // update numeric display
+        forceValDisplay.textContent = `${instantForce >= 0 ? '+' : ''}${instantForce.toFixed(3)} px/step`;
+        stepAll(instantForce);
+        draw(instantForce);
+        lastTimestamp = ts;
       }
-      if (!paused) {
-        animationFrameId = requestAnimationFrame(animate);
-      }
+      if (!paused) animationFrameId = requestAnimationFrame(animate);
     }
 
-    // Event listeners
+    // UI wiring
     numWalkersInput.addEventListener('change', () => {
-      numWalkers = Math.min(100, Math.max(1, parseInt(numWalkersInput.value)));
+      numWalkers = Math.min(300, Math.max(1, parseInt(numWalkersInput.value,10) || 1));
       buildWalkers();
-      draw();
+      draw(computeInstantForce(performance.now()/1000));
     });
+
     stepSizeInput.addEventListener('input', () => {
       stepSize = parseFloat(stepSizeInput.value);
       stepVal.textContent = stepSize;
     });
+
     speedInput.addEventListener('input', () => {
-      speed = parseInt(speedInput.value);
+      speed = parseInt(speedInput.value,10);
       speedVal.textContent = speed;
     });
+
     trailLengthInput.addEventListener('input', () => {
-      trailLength = parseInt(trailLengthInput.value);
+      trailLength = parseInt(trailLengthInput.value,10);
       trailVal.textContent = trailLength;
-      walkers.forEach(w => {
-        if (w.trail.length > trailLength) w.trail = w.trail.slice(-trailLength);
-      });
+      walkers.forEach(w => { if (w.trail.length > trailLength) w.trail = w.trail.slice(-trailLength); });
     });
+
     colorModeInput.addEventListener('change', () => {
       colorMode = colorModeInput.value;
       buildWalkers();
-      draw();
+      draw(computeInstantForce(performance.now()/1000));
     });
+
+    wrapXInput.addEventListener('change', () => {
+      wrapX = (wrapXInput.value === 'true');
+    });
+
+    // DC control
+    dcOffsetInput.addEventListener('input', () => {
+      const v = parseFloat(dcOffsetInput.value);
+      dcVal.textContent = (v >= 0 ? '+' : '') + v.toFixed(1);
+    });
+
+    // AC controls
+    acEnableInput.addEventListener('change', () => {
+      // computeInstantForce reads this directly
+    });
+    acAmpInput.addEventListener('input', () => {
+      acAmpVal.textContent = parseFloat(acAmpInput.value).toFixed(1);
+    });
+
+    // Frequency: sync slider and number input (user can type or slide)
+    function clampFreq(v) {
+      const min = parseFloat(acFreqInput.min) || 0;
+      const max = parseFloat(acFreqInput.max) || 5;
+      if (isNaN(v)) return min;
+      return Math.max(min, Math.min(max, v));
+    }
+
+    acFreqInput.addEventListener('input', () => {
+      const v = clampFreq(parseFloat(acFreqInput.value));
+      acFreqNumInput.value = v.toFixed(2);
+      acFreqVal.textContent = v.toFixed(2);
+    });
+
+    acFreqNumInput.addEventListener('change', () => {
+      let v = clampFreq(parseFloat(acFreqNumInput.value));
+      // Align to step precision (0.01)
+      v = Math.round(v * 100) / 100;
+      acFreqNumInput.value = v.toFixed(2);
+      acFreqInput.value = v.toFixed(2);
+      acFreqVal.textContent = v.toFixed(2);
+    });
+
+    acFreqNumInput.addEventListener('input', () => {
+      // while typing, update displayed value but don't force slider until commit
+      const v = parseFloat(acFreqNumInput.value);
+      if (!isNaN(v)) acFreqVal.textContent = clampFreq(v).toFixed(2);
+    });
+
+    acWaveInput.addEventListener('change', () => { /* nothing else */ });
+
     pauseBtn.addEventListener('click', () => {
       paused = !paused;
       pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+      status.textContent = paused ? 'Paused' : 'Running';
       if (!paused) {
         lastTimestamp = null;
-        animate();
+        animationFrameId = requestAnimationFrame(animate);
       } else {
         cancelAnimationFrame(animationFrameId);
       }
     });
+
     resetBtn.addEventListener('click', () => {
-      resetWalkers();
-      draw();
+      buildWalkers();
+      draw(computeInstantForce(performance.now()/1000));
     });
 
-    // Sync display values
-    stepVal.textContent = stepSizeInput.value;
-    speedVal.textContent = speedInput.value;
-    trailVal.textContent = trailLengthInput.value;
-
-    // Responsive canvas
-    function fitCanvas() {
-      // Maintain 7:5 aspect ratio
-      let w = Math.min(window.innerWidth-24, 900);
-      let h = Math.round(w * 5/7);
-      if (h > window.innerHeight-200) {
-        h = window.innerHeight-200;
-        w = Math.round(h * 7/5);
+    // responsive canvas and init
+    function fitCanvas(){
+      const maxWidth = Math.min(window.innerWidth - 40, 1200);
+      let w = Math.round(Math.max(420, maxWidth));
+      let h = Math.round(w * 0.62);
+      if (h > window.innerHeight - 220) {
+        h = window.innerHeight - 220;
+        w = Math.round(h / 0.62);
       }
+      const prevW = canvas.width, prevH = canvas.height;
+      const prevCx = prevW / 2, prevCy = prevH / 2;
       canvas.width = w;
       canvas.height = h;
-      resetWalkers();
-      draw();
+      walkers.forEach(wk => {
+        const dx = wk.x - prevCx;
+        const dy = wk.y - prevCy;
+        wk.x = canvas.width/2 + dx * (canvas.width/prevW || 1);
+        wk.y = canvas.height/2 + dy * (canvas.height/prevH || 1);
+        wk.x = Math.max(0, Math.min(canvas.width, wk.x));
+        wk.y = Math.max(0, Math.min(canvas.height, wk.y));
+        wk.trail = wk.trail.map(p => ({
+          x: Math.max(0, Math.min(canvas.width, p.x)),
+          y: Math.max(0, Math.min(canvas.height, p.y))
+        })).slice(-trailLength);
+      });
+      draw(computeInstantForce(performance.now()/1000));
     }
     window.addEventListener('resize', fitCanvas);
 
-    // Init
+    // initial values
+    stepVal.textContent = stepSize;
+    speedVal.textContent = speed;
+    trailVal.textContent = trailLength;
+    dcVal.textContent = (getDC() >= 0 ? '+' : '') + getDC().toFixed(1);
+    acAmpVal.textContent = getACAmp().toFixed(1);
+    // ensure number input matches slider on load
+    acFreqNumInput.value = parseFloat(acFreqInput.value).toFixed(2);
+    acFreqVal.textContent = parseFloat(acFreqInput.value).toFixed(2);
+    forceValDisplay.textContent = `${getDC() >= 0 ? '+' : ''}${getDC().toFixed(3)} px/step`;
+
     buildWalkers();
     fitCanvas();
-    draw();
-    animate();
+    // clear white background initially
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    animationFrameId = requestAnimationFrame(animate);
   </script>
 </body>
 </html>

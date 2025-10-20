@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Photo Filters — Explanation, Example & Demonstration</title>
+<style>
+  :root{--bg:#0f1724;--card:#0b1220;--muted:#9aa6b2;--accent:#60a5fa;--glass:rgba(255,255,255,0.03)}
+  *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial}
+  body{margin:0;background:linear-gradient(180deg,#071124 0%,#07142a 100%);color:#e6eef6;min-height:100vh;padding:24px}
+  .wrap{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:360px 1fr;gap:20px}
+  header{grid-column:1/-1;margin-bottom:4px}
+  h1{margin:0;font-size:20px}
+  p.lead{margin:6px 0 18px;color:var(--muted);font-size:14px}
+  .panel{background:var(--card);padding:16px;border-radius:10px;box-shadow:0 6px 24px rgba(2,6,23,0.6)}
+  .controls{display:flex;flex-direction:column;gap:12px}
+  label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+  /* inputs & selects */
+  select,input[type="range"],input[type="file"],input[type="number"]{
+    width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:inherit;
+  }
+
+  /* Make the filter select's text darker so it's readable on light option backgrounds */
+  #filterSelect {
+    color: #06202b;            /* dark teal/near-black for selected text */
+    background: rgba(255,255,255,0.92); /* light background to ensure contrast for options */
+    border: 1px solid rgba(0,0,0,0.08);
+  }
+  /* Ensure dropdown options are dark on supporting browsers */
+  #filterSelect option {
+    color: #06202b;
+    background: #ffffff;
+  }
+
+  .row{display:flex;gap:8px}
+  button{background:var(--accent);color:#03203a;padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+  button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+  .canvas-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+  canvas{width:100%;height:auto;border-radius:8px;background:#071122;border:1px solid rgba(255,255,255,0.03)}
+  .info{font-size:13px;color:var(--muted);margin-top:8px}
+  .formula{background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;font-family:monospace;color:#eaf2ff;white-space:pre-wrap}
+  .pixel-details{margin-top:10px;background:rgba(255,255,255,0.01);padding:10px;border-radius:8px;font-size:13px}
+  footer{grid-column:1/-1;margin-top:14px;color:var(--muted);font-size:13px;text-align:center}
+  .small{font-size:12px;color:var(--muted)}
+  .param-row{display:flex;gap:8px;align-items:center}
+  .param-row > span{min-width:90px;color:var(--muted);font-size:13px}
+  .controls .hint{font-size:12px;color:var(--muted)}
+  @media(max-width:960px){.wrap{grid-template-columns:1fr; padding:12px} .canvas-wrap{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Photo Filters — Explanation, Example & Demonstration</h1>
+      <p class="lead">Interactive page showing a selection of common filters, the RGB mathematics behind them, and a live demo using a Gaussian-noise sample or your uploaded image.</p>
+    </header>
+
+    <aside class="panel">
+      <div class="controls">
+        <div>
+          <label for="imageFile">Upload an image (optional)</label>
+          <input id="imageFile" type="file" accept="image/*">
+        </div>
+
+        <div>
+          <label for="sampleBtn">Sample image</label>
+          <div class="row">
+            <button id="noiseBtn">Generate Colored Gaussian Noise</button>
+            <button id="defaultBtn" class="secondary">Use default sample</button>
+          </div>
+          <div class="info">Gaussian noise produces normally distributed values for each RGB channel so the noise is colourful.</div>
+        </div>
+
+        <div>
+          <label for="filterSelect">Filter</label>
+          <select id="filterSelect">
+            <option value="none">None (original)</option>
+            <option value="grayscale">Grayscale</option>
+            <option value="sepia">Sepia</option>
+            <option value="invert">Invert</option>
+            <option value="brightness">Brightness</option>
+            <option value="contrast">Contrast</option>
+            <option value="saturation">Saturation</option>
+            <option value="hue">Hue Rotate</option>
+            <option value="vignette">Vignette</option>
+            <option value="blackpoint">Black Point</option>
+            <option value="whitepoint">White Point</option>
+          </select>
+        </div>
+
+        <div id="paramControls">
+          <!-- Dynamic parameter fields inserted here -->
+        </div>
+
+        <div class="row">
+          <button id="applyBtn">Apply Filter</button>
+          <button id="downloadBtn">Download</button>
+          <button id="resetBtn" class="secondary">Reset</button>
+        </div>
+
+        <div>
+          <label for="pixelCoord">Pixel coordinate to inspect (x,y)</label>
+          <div class="row">
+            <input id="pxX" type="number" value="10" min="0" style="width:66px">
+            <input id="pxY" type="number" value="10" min="0" style="width:66px">
+            <button id="inspectBtn">Inspect Pixel</button>
+          </div>
+          <div class="hint">Choose a pixel to see the numeric RGB/HSL calculation for the selected filter.</div>
+        </div>
+
+        <div class="pixel-details" id="pixelDetails">
+          Pixel details will appear here after inspection.
+        </div>
+      </div>
+    </aside>
+
+    <main class="panel">
+      <div class="canvas-wrap">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <strong>Original</strong>
+            <span class="small">Left: source image</span>
+          </div>
+          <canvas id="sourceCanvas" width="640" height="480"></canvas>
+        </div>
+
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <strong>Filtered</strong>
+            <span class="small">Right: result</span>
+          </div>
+          <canvas id="resultCanvas" width="640" height="480"></canvas>
+        </div>
+      </div>
+
+      <section style="margin-top:14px">
+        <h3 style="margin:0 0 8px 0">Filter formulae</h3>
+        <div class="formula" id="formulaBox">
+Grayscale:
+  R' = G' = B' = 0.299*R + 0.587*G + 0.114*B
+
+Sepia:
+  R' = 0.393*R + 0.769*G + 0.189*B
+  G' = 0.349*R + 0.686*G + 0.168*B
+  B' = 0.272*R + 0.534*G + 0.131*B
+
+Invert:
+  R' = 255 - R
+  G' = 255 - G
+  B' = 255 - B
+
+Brightness (amount: -255..+255):
+  R' = clamp(R + amount, 0, 255)
+  G' = clamp(G + amount, 0, 255)
+  B' = clamp(B + amount, 0, 255)
+
+Contrast (amount: -255..+255):
+  factor = (259*(amount + 255)) / (255*(259 - amount))
+  R' = clamp(factor*(R - 128) + 128, 0, 255)
+  G' = clamp(factor*(G - 128) + 128, 0, 255)
+  B' = clamp(factor*(B - 128) + 128, 0, 255)
+
+Saturation (amount: -100..+100):
+  Let gray = 0.299*R + 0.587*G + 0.114*B
+  factor = 1 + amount/100
+  R' = clamp(gray + (R - gray)*factor, 0, 255)
+  G' = clamp(gray + (G - gray)*factor, 0, 255)
+  B' = clamp(gray + (B - gray)*factor, 0, 255)
+
+Hue Rotate (degrees: -180..+180):
+  Convert RGB -> HSL, H' = (H + degrees) mod 360, convert back HSL -> RGB.
+
+Vignette (strength: 0..100):
+  For pixel at normalized distance d from center (0..1):
+  falloff = 1 - strength*(d^2)
+  R' = clamp(R * falloff)
+  G' = clamp(G * falloff)
+  B' = clamp(B * falloff)
+
+Black Point (black: 0..255):
+  For each channel:
+  if v <= black: v' = 0
+  else v' = clamp( (v - black) * 255 / (255 - black) )
+
+White Point (white: 0..255):
+  For each channel:
+  if v >= white: v' = 255
+  else v' = clamp( v * 255 / white )
+
+Notes:
+- All equations operate per pixel.
+- clamp(x,0,255) ensures values are valid 8-bit integers.
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="small">
+      Red, Green, Blue (RGB). Hue, Saturation Light (HSL). The viewport image is 480x480 pixels. Inspect a viewport pixel to check the filter calculations. Try uploading your own photos, generating coloured noise or exploring more filters (saturation/hue/vignette).
+    </footer>
+  </div>
+
+<script>
+/*
+  Updated Photo filter demo:
+  - Inspect Pixel button now styled like other primary blue buttons.
+  - Added a Download button that creates a full-size filtered PNG and triggers download.
+  - The download uses the original source image size (if available) or falls back to the current canvas size (e.g., for generated noise).
+  - If the canvas is tainted by a cross-origin image, the download will fail and show an alert explaining why.
+  - Added Black Point and White Point filters with UI sliders and pixel inspector support.
+*/
+
+const srcCanvas = document.getElementById('sourceCanvas');
+const resCanvas = document.getElementById('resultCanvas');
+const srcCtx = srcCanvas.getContext('2d');
+const resCtx = resCanvas.getContext('2d');
+
+const imageFile = document.getElementById('imageFile');
+const noiseBtn = document.getElementById('noiseBtn');
+const applyBtn = document.getElementById('applyBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const resetBtn = document.getElementById('resetBtn');
+const defaultBtn = document.getElementById('defaultBtn');
+const filterSelect = document.getElementById('filterSelect');
+const paramControls = document.getElementById('paramControls');
+const formulaBox = document.getElementById('formulaBox');
+const inspectBtn = document.getElementById('inspectBtn');
+const pixelDetails = document.getElementById('pixelDetails');
+const pxX = document.getElementById('pxX');
+const pxY = document.getElementById('pxY');
+
+let originalImageData = null;
+let currentImage = new Image();
+let lastLoadedImage = null;
+
+const defaultSampleURL = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Portrait_Placeholder.png/600px-Portrait_Placeholder.png';
+
+// Helpers
+function clamp(v){ return Math.max(0, Math.min(255, Math.round(v))); }
+function toInt(v){ return Math.round(v); }
+
+// Image draw
+function drawImageToSource(img){
+  const maxW = 640, maxH = 480;
+  let w = img.width, h = img.height;
+  const ratio = Math.min(maxW/w, maxH/h, 1);
+  w = Math.round(w*ratio);
+  h = Math.round(h*ratio);
+  srcCanvas.width = w; srcCanvas.height = h;
+  resCanvas.width = w; resCanvas.height = h;
+  srcCtx.clearRect(0,0,w,h);
+  srcCtx.drawImage(img, 0, 0, w, h);
+  originalImageData = srcCtx.getImageData(0,0,w,h);
+  resCtx.putImageData(originalImageData, 0, 0);
+}
+
+// Box–Muller for gaussian
+function boxMuller(){ // returns standard normal random
+  let u=0,v=0;
+  while(u===0) u=Math.random();
+  while(v===0) v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+
+// Generate colored gaussian noise: independent R/G/B channels
+function generateGaussianNoise(w=640,h=480,mean=127,sigma=40){
+  srcCanvas.width = w; srcCanvas.height = h;
+  resCanvas.width = w; resCanvas.height = h;
+  const id = srcCtx.createImageData(w,h);
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const i = (y*w + x)*4;
+      // independent gaussian values for R,G,B
+      const nr = clamp(boxMuller()*sigma + mean + Math.round((Math.random()-0.5)*10));
+      const ng = clamp(boxMuller()*sigma + mean + Math.round((Math.random()-0.5)*10));
+      const nb = clamp(boxMuller()*sigma + mean + Math.round((Math.random()-0.5)*10));
+      id.data[i]   = nr;
+      id.data[i+1] = ng;
+      id.data[i+2] = nb;
+      id.data[i+3] = 255;
+    }
+  }
+  srcCtx.putImageData(id, 0, 0);
+  originalImageData = srcCtx.getImageData(0,0,w,h);
+  resCtx.putImageData(originalImageData, 0, 0);
+}
+
+// Color conversions for hue rotate
+function rgbToHsl(r,g,b){ // r,g,b in [0..255]
+  r/=255; g/=255; b/=255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let h=0, s=0, l=(max+min)/2;
+  if(max !== min){
+    const d = max - min;
+    s = l > 0.5 ? d/(2 - max - min) : d/(max + min);
+    switch(max){
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h *= 60;
+  }
+  return [h, s, l];
+}
+function hslToRgb(h,s,l){ // h in degrees, s,l in [0..1]; returns [r,g,b] 0..255
+  h = (h%360 + 360) % 360;
+  const c = (1 - Math.abs(2*l - 1)) * s;
+  const hp = h/60;
+  const x = c * (1 - Math.abs((hp % 2) - 1));
+  let [r1,g1,b1] = [0,0,0];
+  if(hp >= 0 && hp < 1){ r1=c; g1=x; b1=0; }
+  else if(hp < 2){ r1=x; g1=c; b1=0; }
+  else if(hp < 3){ r1=0; g1=c; b1=x; }
+  else if(hp < 4){ r1=0; g1=x; b1=c; }
+  else if(hp < 5){ r1=x; g1=0; b1=c; }
+  else { r1=c; g1=0; b1=x; }
+  const m = l - c/2;
+  return [clamp((r1 + m)*255), clamp((g1 + m)*255), clamp((b1 + m)*255)];
+}
+
+// Filter implementations (operate on ImageData in place)
+function applyFilterToImageData(imageData, filterName, params = {}){
+  const data = imageData.data;
+  const len = data.length;
+  if(filterName === 'none') return;
+  if(filterName === 'grayscale'){
+    for(let i=0;i<len;i+=4){
+      const r=data[i], g=data[i+1], b=data[i+2];
+      const y = 0.299*r + 0.587*g + 0.114*b;
+      const yy = clamp(y);
+      data[i]=data[i+1]=data[i+2]=yy;
+    }
+  } else if(filterName === 'sepia'){
+    for(let i=0;i<len;i+=4){
+      const r=data[i], g=data[i+1], b=data[i+2];
+      const nr = clamp(0.393*r + 0.769*g + 0.189*b);
+      const ng = clamp(0.349*r + 0.686*g + 0.168*b);
+      const nb = clamp(0.272*r + 0.534*g + 0.131*b);
+      data[i]=nr; data[i+1]=ng; data[i+2]=nb;
+    }
+  } else if(filterName === 'invert'){
+    for(let i=0;i<len;i+=4){
+      data[i]=255-data[i];
+      data[i+1]=255-data[i+1];
+      data[i+2]=255-data[i+2];
+    }
+  } else if(filterName === 'brightness'){
+    const amt = (typeof params.amount === 'number')?params.amount:0;
+    for(let i=0;i<len;i+=4){
+      data[i]=clamp(data[i] + amt);
+      data[i+1]=clamp(data[i+1] + amt);
+      data[i+2]=clamp(data[i+2] + amt);
+    }
+  } else if(filterName === 'contrast'){
+    const amt = (typeof params.amount === 'number')?params.amount:0;
+    const factor = (259*(amt + 255)) / (255*(259 - amt));
+    for(let i=0;i<len;i+=4){
+      data[i]=clamp(factor*(data[i] - 128) + 128);
+      data[i+1]=clamp(factor*(data[i+1] - 128) + 128);
+      data[i+2]=clamp(factor*(data[i+2] - 128) + 128);
+    }
+  } else if(filterName === 'saturation'){
+    // params.amount in -100..100
+    const amt = (typeof params.amount === 'number')?params.amount:0;
+    const factor = 1 + amt/100;
+    for(let i=0;i<len;i+=4){
+      const r=data[i], g=data[i+1], b=data[i+2];
+      const gray = 0.299*r + 0.587*g + 0.114*b;
+      data[i]   = clamp(gray + (r - gray)*factor);
+      data[i+1] = clamp(gray + (g - gray)*factor);
+      data[i+2] = clamp(gray + (b - gray)*factor);
+    }
+  } else if(filterName === 'hue'){
+    // params.deg -180..180
+    const deg = (typeof params.deg === 'number')?params.deg:0;
+    for(let i=0;i<len;i+=4){
+      const r=data[i], g=data[i+1], b=data[i+2];
+      const [h,s,l] = rgbToHsl(r,g,b);
+      const [nr,ng,nb] = hslToRgb(h + deg, s, l);
+      data[i]=nr; data[i+1]=ng; data[i+2]=nb;
+    }
+  } else if(filterName === 'vignette'){
+    // strength 0..100
+    const strength = (typeof params.strength === 'number')?params.strength:0;
+    const w = imageData.width, h = imageData.height;
+    const cx = w/2, cy = h/2;
+    const maxd = Math.sqrt(cx*cx + cy*cy);
+    const s = strength/100;
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        const i = (y*w + x)*4;
+        const dx = x - cx, dy = y - cy;
+        const d = Math.sqrt(dx*dx + dy*dy) / maxd; // 0..1
+        const falloff = Math.max(0, 1 - s * (d*d));
+        data[i]   = clamp(data[i]   * falloff);
+        data[i+1] = clamp(data[i+1] * falloff);
+        data[i+2] = clamp(data[i+2] * falloff);
+      }
+    }
+  } else if(filterName === 'blackpoint'){
+    // black: 0..255
+    const black = (typeof params.black === 'number')?params.black:0;
+    const denom = (255 - black) || 1;
+    const scale = 255 / denom;
+    for(let i=0;i<len;i+=4){
+      for(let c=0;c<3;c++){
+        const v = data[i+c];
+        if(v <= black) data[i+c] = 0;
+        else data[i+c] = clamp((v - black) * scale);
+      }
+    }
+  } else if(filterName === 'whitepoint'){
+    // white: 0..255
+    const white = (typeof params.white === 'number')?params.white:255;
+    const denom = (white) || 1;
+    const scale = 255 / denom;
+    for(let i=0;i<len;i+=4){
+      for(let c=0;c<3;c++){
+        const v = data[i+c];
+        if(v >= white) data[i+c] = 255;
+        else data[i+c] = clamp(v * scale);
+      }
+    }
+  }
+}
+
+// UI wiring
+noiseBtn.addEventListener('click', ()=> {
+  generateGaussianNoise(640,480,127,40);
+  lastLoadedImage = null;
+});
+
+defaultBtn.addEventListener('click', ()=> {
+  currentImage = new Image();
+  currentImage.crossOrigin = "anonymous";
+  currentImage.onload = ()=> drawImageToSource(currentImage);
+  currentImage.src = defaultSampleURL;
+  lastLoadedImage = currentImage;
+});
+
+imageFile.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    currentImage = new Image();
+    currentImage.onload = ()=> drawImageToSource(currentImage);
+    currentImage.src = ev.target.result;
+    lastLoadedImage = currentImage;
+  };
+  reader.readAsDataURL(f);
+});
+
+filterSelect.addEventListener('change', updateParamUI);
+
+function updateParamUI(){
+  const which = filterSelect.value;
+  paramControls.innerHTML = '';
+  if(which === 'brightness'){
+    const div = document.createElement('div');
+    div.className = 'param-row';
+    div.innerHTML = '<span>Brightness</span><input id="brightnessRange" type="range" min="-255" max="255" value="0"><span id="brightnessVal">0</span>';
+    paramControls.appendChild(div);
+    const r = div.querySelector('#brightnessRange');
+    const v = div.querySelector('#brightnessVal');
+    r.addEventListener('input', ()=> v.textContent = r.value);
+  } else if(which === 'contrast'){
+    const div = document.createElement('div');
+    div.className = 'param-row';
+    div.innerHTML = '<span>Contrast</span><input id="contrastRange" type="range" min="-255" max="255" value="0"><span id="contrastVal">0</span>';
+    paramControls.appendChild(div);
+    const r = div.querySelector('#contrastRange');
+    const v = div.querySelector('#contrastVal');
+    r.addEventListener('input', ()=> v.textContent = r.value);
+  } else if(which === 'saturation'){
+    const div = document.createElement('div');
+    div.className = 'param-row';
+    div.innerHTML = '<span>Saturation</span><input id="saturationRange" type="range" min="-100" max="100" value="0"><span id="saturationVal">0</span>';
+    paramControls.appendChild(div);
+    const r = div.querySelector('#saturationRange');
+    const v = div.querySelector('#saturationVal');
+    r.addEventListener('input', ()=> v.textContent = r.value);
+  } else if(which === 'hue'){
+    const div = document.createElement('div');
+    div.className = 'param-row';
+    div.innerHTML = '<span>Hue (°)</span><input id="hueRange" type="range" min="-180" max="180" value="0"><span id="hueVal">0</span>';
+    paramControls.appendChild(div);
+    const r = div.querySelector('#hueRange');
+    const v = div.querySelector('#hueVal');
+    r.addEventListener('input', ()=> v.textContent = r.value);
+  } else if(which === 'vignette'){
+    const div = document.createElement('div');
+    div.className = 'param-row';
+    div.innerHTML = '<span>Vignette</span><input id="vignetteRange" type="range" min="0" max="100" value="40"><span id="vignetteVal">40</span>';
+    paramControls.appendChild(div);
+    const r = div.querySelector('#vignetteRange');
+    const v = div.querySelector('#vignetteVal');
+    r.addEventListener('input', ()=> v.textContent = r.value);
+  } else if(which === 'blackpoint'){
+    const div = document.createElement('div');
+    div.className = 'param-row';
+    div.innerHTML = '<span>Black Point</span><input id="blackRange" type="range" min="0" max="255" value="10"><span id="blackVal">10</span>';
+    paramControls.appendChild(div);
+    const r = div.querySelector('#blackRange');
+    const v = div.querySelector('#blackVal');
+    r.addEventListener('input', ()=> v.textContent = r.value);
+  } else if(which === 'whitepoint'){
+    const div = document.createElement('div');
+    div.className = 'param-row';
+    div.innerHTML = '<span>White Point</span><input id="whiteRange" type="range" min="1" max="255" value="245"><span id="whiteVal">245</span>';
+    paramControls.appendChild(div);
+    const r = div.querySelector('#whiteRange');
+    const v = div.querySelector('#whiteVal');
+    r.addEventListener('input', ()=> v.textContent = r.value);
+  } else {
+    // no params
+  }
+  highlightFormula(which);
+}
+
+function highlightFormula(which){
+  const base = {
+    'none':'No filter selected. The right canvas will show the original image.',
+    'grayscale':'Grayscale:\n  R\\\' = G\\\' = B\\\' = 0.299*R + 0.587*G + 0.114*B',
+    'sepia':'Sepia:\n  R\\\' = 0.393*R + 0.769*G + 0.189*B\n  G\\\' = 0.349*R + 0.686*G + 0.168*B\n  B\\\' = 0.272*R + 0.534*G + 0.131*B',
+    'invert':'Invert:\n  R\\\' = 255 - R\n  G\\\' = 255 - G\n  B\\\' = 255 - B',
+    'brightness':'Brightness:\n  R\\\' = clamp(R + amount,0,255)\n  G\\\' = clamp(G + amount,0,255)\n  B\\\' = clamp(B + amount,0,255)\n  amount ∈ [-255,255]',
+    'contrast':'Contrast:\n  factor = (259*(amount + 255)) / (255*(259 - amount))\n  R\\\' = clamp(factor*(R - 128) + 128,0,255)\n  G\\\' = clamp(factor*(G - 128) + 128,0,255)\n  B\\\' = clamp(factor*(B - 128) + 128,0,255)\n  amount ∈ [-255,255]',
+    'saturation':'Saturation:\n  gray = 0.299*R + 0.587*G + 0.114*B\n  factor = 1 + amount/100\n  R\\\' = clamp(gray + (R - gray)*factor,0,255)\n  amount ∈ [-100,100]',
+    'hue':'Hue Rotate:\n  Convert RGB -> HSL, H\\\' = (H + degrees) mod 360, convert back HSL -> RGB\n  degrees ∈ [-180,180]',
+    'vignette':'Vignette:\n  falloff = 1 - strength*(d^2)  (d = normalized distance from center)\n  R\\\' = clamp(R * falloff)\n  strength ∈ [0,100]',
+    'blackpoint':'Black Point:\n  if v <= black: v\\\' = 0\n  else v\\\' = clamp((v - black) * 255 / (255 - black))\n  black ∈ [0,255]',
+    'whitepoint':'White Point:\n  if v >= white: v\\\' = 255\n  else v\\\' = clamp(v * 255 / white)\n  white ∈ [1,255]'
+  };
+  const text = base[which] || base['none'];
+  formulaBox.textContent = text + "\n\n(See the full list of equations above for reference.)";
+}
+
+applyBtn.addEventListener('click', ()=>{
+  if(!originalImageData) return alert('Load or generate an image first.');
+  const imageData = new ImageData(new Uint8ClampedArray(originalImageData.data), originalImageData.width, originalImageData.height);
+  const selected = filterSelect.value;
+  let params = {};
+  if(selected === 'brightness'){
+    const r = document.getElementById('brightnessRange');
+    params.amount = r ? parseInt(r.value,10) : 0;
+  } else if(selected === 'contrast'){
+    const r = document.getElementById('contrastRange');
+    params.amount = r ? parseInt(r.value,10) : 0;
+  } else if(selected === 'saturation'){
+    const r = document.getElementById('saturationRange');
+    params.amount = r ? parseInt(r.value,10) : 0;
+  } else if(selected === 'hue'){
+    const r = document.getElementById('hueRange');
+    params.deg = r ? parseInt(r.value,10) : 0;
+  } else if(selected === 'vignette'){
+    const r = document.getElementById('vignetteRange');
+    params.strength = r ? parseInt(r.value,10) : 0;
+  } else if(selected === 'blackpoint'){
+    const r = document.getElementById('blackRange');
+    params.black = r ? parseInt(r.value,10) : 0;
+  } else if(selected === 'whitepoint'){
+    const r = document.getElementById('whiteRange');
+    params.white = r ? parseInt(r.value,10) : 255;
+  }
+  applyFilterToImageData(imageData, selected, params);
+  resCtx.putImageData(imageData, 0, 0);
+});
+
+resetBtn.addEventListener('click', ()=>{
+  if(!originalImageData) return;
+  resCtx.putImageData(originalImageData, 0, 0);
+  filterSelect.value = 'none';
+  updateParamUI();
+  pixelDetails.innerHTML = 'Pixel details cleared.';
+});
+
+// Pixel inspector
+inspectBtn.addEventListener('click', ()=>{
+  if(!originalImageData) return alert('Load an image or generate noise first.');
+  const x = parseInt(pxX.value,10) || 0;
+  const y = parseInt(pxY.value,10) || 0;
+  if(x < 0 || x >= originalImageData.width || y < 0 || y >= originalImageData.height) {
+    return alert('Coordinates out of bounds for the current image.');
+  }
+  const i = (y*originalImageData.width + x)*4;
+  const R = originalImageData.data[i];
+  const G = originalImageData.data[i+1];
+  const B = originalImageData.data[i+2];
+  const A = originalImageData.data[i+3];
+  const selected = filterSelect.value;
+  let html = `<strong>Inspecting pixel (${x},${y})</strong>\nOriginal RGB = (${R}, ${G}, ${B}), A=${A}\n\n`;
+  if(selected === 'none'){
+    html += 'No filter selected — original pixel unchanged.';
+  } else if(selected === 'grayscale'){
+    const yv = 0.299*R + 0.587*G + 0.114*B;
+    html += `Grayscale calculation:\nY = 0.299*R + 0.587*G + 0.114*B\nY = 0.299*${R} + 0.587*${G} + 0.114*${B}\nY = ${yv.toFixed(3)}\n=> Rounded & clamped = ${clamp(yv)}\nResult RGB = (${clamp(yv)}, ${clamp(yv)}, ${clamp(yv)})`;
+  } else if(selected === 'sepia'){
+    const nr = 0.393*R + 0.769*G + 0.189*B;
+    const ng = 0.349*R + 0.686*G + 0.168*B;
+    const nb = 0.272*R + 0.534*G + 0.131*B;
+    html += `Sepia calculation:\nR' = 0.393*R + 0.769*G + 0.189*B = ${nr.toFixed(3)} => ${clamp(nr)}\nG' = 0.349*R + 0.686*G + 0.168*B = ${ng.toFixed(3)} => ${clamp(ng)}\nB' = 0.272*R + 0.534*G + 0.131*B = ${nb.toFixed(3)} => ${clamp(nb)}\nResult RGB = (${clamp(nr)}, ${clamp(ng)}, ${clamp(nb)})`;
+  } else if(selected === 'invert'){
+    const r2 = 255 - R, g2 = 255 - G, b2 = 255 - B;
+    html += `Invert calculation:\nR' = 255 - R = 255 - ${R} = ${r2}\nG' = 255 - G = 255 - ${G} = ${g2}\nB' = 255 - B = 255 - ${B} = ${b2}\nResult RGB = (${r2}, ${g2}, ${b2})`;
+  } else if(selected === 'brightness'){
+    const rInput = document.getElementById('brightnessRange');
+    const amt = rInput ? parseInt(rInput.value,10) : 0;
+    const r2 = clamp(R + amt), g2 = clamp(G + amt), b2 = clamp(B + amt);
+    html += `Brightness calculation (amount = ${amt}):\nR' = clamp(${R} + ${amt}) = ${r2}\nG' = clamp(${G} + ${amt}) = ${g2}\nB' = clamp(${B} + ${amt}) = ${b2}\nResult RGB = (${r2}, ${g2}, ${b2})`;
+  } else if(selected === 'contrast'){
+    const rInput = document.getElementById('contrastRange');
+    const amt = rInput ? parseInt(rInput.value,10) : 0;
+    const factor = (259*(amt + 255)) / (255*(259 - amt));
+    const r2 = clamp(factor*(R - 128) + 128);
+    const g2 = clamp(factor*(G - 128) + 128);
+    const b2 = clamp(factor*(B - 128) + 128);
+    html += `Contrast calculation (amount = ${amt}):\nfactor = ${factor.toFixed(6)}\nR' = clamp(${factor.toFixed(6)}*(${R}-128)+128) = ${r2}\nG' = ${g2}\nB' = ${b2}\nResult RGB = (${r2}, ${g2}, ${b2})`;
+  } else if(selected === 'saturation'){
+    const rInput = document.getElementById('saturationRange');
+    const amt = rInput ? parseInt(rInput.value,10) : 0;
+    const factor = 1 + amt/100;
+    const gray = 0.299*R + 0.587*G + 0.114*B;
+    const r2 = clamp(gray + (R - gray)*factor);
+    const g2 = clamp(gray + (G - gray)*factor);
+    const b2 = clamp(gray + (B - gray)*factor);
+    html += `Saturation calculation (amount = ${amt}):\ngray = 0.299*R + 0.587*G + 0.114*B = ${gray.toFixed(3)}\nfactor = 1 + ${amt}/100 = ${factor.toFixed(3)}\nR' = clamp(${gray.toFixed(3)} + (${R} - ${gray.toFixed(3)})*${factor.toFixed(3)}) = ${r2}\nG' = ${g2}\nB' = ${b2}\nResult RGB = (${r2}, ${g2}, ${b2})`;
+  } else if(selected === 'hue'){
+    const rInput = document.getElementById('hueRange');
+    const deg = rInput ? parseInt(rInput.value,10) : 0;
+    const [h,s,l] = rgbToHsl(R,G,B);
+    const [nr,ng,nb] = hslToRgb(h + deg, s, l);
+    html += `Hue rotate (degrees = ${deg}):\nRGB -> HSL: H=${h.toFixed(3)}°, S=${(s*100).toFixed(2)}%, L=${(l*100).toFixed(2)}%\nH' = H + ${deg} = ${(h+deg).toFixed(3)}°\nConvert H',S,L back to RGB => (${nr}, ${ng}, ${nb})\nResult RGB = (${nr}, ${ng}, ${nb})`;
+  } else if(selected === 'vignette'){
+    const rInput = document.getElementById('vignetteRange');
+    const strength = rInput ? parseInt(rInput.value,10) : 0;
+    const w = originalImageData.width, h = originalImageData.height;
+    const cx = w/2, cy = h/2;
+    const maxd = Math.sqrt(cx*cx + cy*cy);
+    const dx = x - cx, dy = y - cy;
+    const dnorm = Math.sqrt(dx*dx + dy*dy)/maxd;
+    const falloff = Math.max(0, 1 - (strength/100) * (dnorm*dnorm));
+    const r2 = clamp(R * falloff), g2 = clamp(G * falloff), b2 = clamp(B * falloff);
+    html += `Vignette (strength = ${strength}):\nNormalized distance d = ${dnorm.toFixed(4)}\nfalloff = 1 - ${strength/100} * d^2 = ${falloff.toFixed(4)}\nR' = clamp(${R} * ${falloff.toFixed(4)}) = ${r2}\nG' = ${g2}\nB' = ${b2}\nResult RGB = (${r2}, ${g2}, ${b2})`;
+  } else if(selected === 'blackpoint'){
+    const rInput = document.getElementById('blackRange');
+    const black = rInput ? parseInt(rInput.value,10) : 0;
+    const denom = (255 - black) || 1;
+    const scale = 255 / denom;
+    function map(v){ return v <= black ? 0 : clamp((v - black) * scale); }
+    const r2 = map(R), g2 = map(G), b2 = map(B);
+    html += `Black Point (black = ${black}):\nIf v <= ${black} -> 0\nElse v' = clamp((v - ${black}) * 255 / (255 - ${black}))\nR' = ${R} => ${r2}\nG' = ${G} => ${g2}\nB' = ${B} => ${b2}\nResult RGB = (${r2}, ${g2}, ${b2})`;
+  } else if(selected === 'whitepoint'){
+    const rInput = document.getElementById('whiteRange');
+    const white = rInput ? parseInt(rInput.value,10) : 255;
+    const denom = (white) || 1;
+    const scale = 255 / denom;
+    function map(v){ return v >= white ? 255 : clamp(v * scale); }
+    const r2 = map(R), g2 = map(G), b2 = map(B);
+    html += `White Point (white = ${white}):\nIf v >= ${white} -> 255\nElse v' = clamp(v * 255 / ${white})\nR' = ${R} => ${r2}\nG' = ${G} => ${g2}\nB' = ${B} => ${b2}\nResult RGB = (${r2}, ${g2}, ${b2})`;
+  } else {
+    html += 'Filter not recognized for inspection.';
+  }
+
+  pixelDetails.innerHTML = '<pre style="white-space:pre-wrap;color:#dff3ff;font-family:monospace;font-size:13px;padding:0;margin:0;background:transparent;border:0">' + html + '</pre>';
+});
+
+// Download handler: attempt to produce a full-size filtered PNG
+downloadBtn.addEventListener('click', async ()=>{
+  if(!originalImageData && !lastLoadedImage) return alert('Load or generate an image first.');
+
+  // determine size: prefer original source image natural size if available
+  let w, h;
+  if(lastLoadedImage && lastLoadedImage.naturalWidth && lastLoadedImage.naturalHeight){
+    w = lastLoadedImage.naturalWidth;
+    h = lastLoadedImage.naturalHeight;
+  } else if(originalImageData){
+    w = originalImageData.width;
+    h = originalImageData.height;
+  } else {
+    return alert('Unable to determine image size for download.');
+  }
+
+  const off = document.createElement('canvas');
+  off.width = w;
+  off.height = h;
+  const offCtx = off.getContext('2d');
+
+  try {
+    if(lastLoadedImage && lastLoadedImage.naturalWidth && lastLoadedImage.naturalHeight){
+      // draw the original source image at full size
+      offCtx.drawImage(lastLoadedImage, 0, 0, w, h);
+    } else if(originalImageData){
+      // use the existing image data (already same size)
+      offCtx.putImageData(originalImageData, 0, 0);
+    }
+
+    // get image data and apply same filter & params used in UI
+    let imageData = offCtx.getImageData(0,0,w,h);
+    const selected = filterSelect.value;
+    let params = {};
+    if(selected === 'brightness'){
+      const r = document.getElementById('brightnessRange');
+      params.amount = r ? parseInt(r.value,10) : 0;
+    } else if(selected === 'contrast'){
+      const r = document.getElementById('contrastRange');
+      params.amount = r ? parseInt(r.value,10) : 0;
+    } else if(selected === 'saturation'){
+      const r = document.getElementById('saturationRange');
+      params.amount = r ? parseInt(r.value,10) : 0;
+    } else if(selected === 'hue'){
+      const r = document.getElementById('hueRange');
+      params.deg = r ? parseInt(r.value,10) : 0;
+    } else if(selected === 'vignette'){
+      const r = document.getElementById('vignetteRange');
+      params.strength = r ? parseInt(r.value,10) : 0;
+    } else if(selected === 'blackpoint'){
+      const r = document.getElementById('blackRange');
+      params.black = r ? parseInt(r.value,10) : 0;
+    } else if(selected === 'whitepoint'){
+      const r = document.getElementById('whiteRange');
+      params.white = r ? parseInt(r.value,10) : 255;
+    }
+
+    // Apply filter (this may be slow for very large images)
+    applyFilterToImageData(imageData, selected, params);
+    offCtx.putImageData(imageData, 0, 0);
+
+    // Trigger download
+    const dataURL = off.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = dataURL;
+    a.download = 'filtered.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (err) {
+    // Common cause: canvas is tainted by cross-origin image drawn without CORS
+    alert('Could not generate full-size download. Possible cause: the image is cross-origin and the canvas is tainted. (' + (err && err.message ? err.message : err) + ')');
+  }
+});
+
+// Initialize UI
+updateParamUI();
+
+// Load default sample automatically
+(function init(){
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.onload = ()=> {
+    currentImage = img;
+    drawImageToSource(img);
+    lastLoadedImage = img;
+  };
+  img.src = defaultSampleURL;
+})();
+
+</script>
+</body>
+</html>
