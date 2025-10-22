@@ -32,6 +32,17 @@
     background: #ffffff;
   }
 
+  /* Make rotate dropdown (the rotate 90° selector) black on white for readability */
+  #rotateSelect {
+    color: #06202b;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid rgba(0,0,0,0.08);
+  }
+  #rotateSelect option {
+    color: #06202b;
+    background: #ffffff;
+  }
+
   .row{display:flex;gap:8px}
   button{background:var(--accent);color:#03203a;padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
   button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
@@ -65,7 +76,7 @@
         <div>
           <label for="sampleBtn">Sample image</label>
           <div class="row">
-            <button id="noiseBtn">Generate Colored Gaussian Noise</button>
+            <button id="noiseBtn">Generate Coloured Gaussian Noise</button>
             <button id="defaultBtn" class="secondary">Use default sample</button>
           </div>
           <div class="info">Gaussian noise produces normally distributed values for each RGB channel so the noise is colourful.</div>
@@ -85,6 +96,10 @@
             <option value="vignette">Vignette</option>
             <option value="blackpoint">Black Point</option>
             <option value="whitepoint">White Point</option>
+            <option value="rotate">Rotate (90° steps)</option>
+            <option value="rotateAny">Rotate (any angle)</option>
+            <option value="flipx">Flip X (horizontal)</option>
+            <option value="flipy">Flip Y (vertical)</option>
           </select>
         </div>
 
@@ -187,8 +202,20 @@ White Point (white: 0..255):
   if v >= white: v' = 255
   else v' = clamp( v * 255 / white )
 
+Rotate (90° steps):
+  Spatial transform — image is rotated by 0/90/180/270 degrees.
+
+Rotate (any angle):
+  Spatial transform — image is rotated by any angle in degrees. Output dimensions are the rotated bounding box.
+
+Flip X (horizontal):
+  Spatial transform — pixel at (x,y) maps to (width-1-x, y)
+
+Flip Y (vertical):
+  Spatial transform — pixel at (x,y) maps to (x, height-1-y)
+
 Notes:
-- All equations operate per pixel.
+- All equations operate per pixel (unless the filter is a spatial transform).
 - clamp(x,0,255) ensures values are valid 8-bit integers.
         </div>
       </section>
@@ -196,18 +223,19 @@ Notes:
     </main>
 
     <footer class="small">
-      Red, Green, Blue (RGB). Hue, Saturation Light (HSL). The viewport image is 480x480 pixels. Inspect a viewport pixel to check the filter calculations. Try uploading your own photos, generating coloured noise or exploring more filters (saturation/hue/vignette).
+      Red, Green, Blue (RGB). Hue, Saturation Light (HSL). The viewport image is 480x480 pixels. Inspect a viewport pixel to check the filter calculations. Try uploading your own photos, generating coloured Gaussian noise, or use the rotate/flip transforms to reorient images.
     </footer>
   </div>
 
 <script>
 /*
   Updated Photo filter demo:
-  - Inspect Pixel button now styled like other primary blue buttons.
-  - Added a Download button that creates a full-size filtered PNG and triggers download.
-  - The download uses the original source image size (if available) or falls back to the current canvas size (e.g., for generated noise).
-  - If the canvas is tainted by a cross-origin image, the download will fail and show an alert explaining why.
-  - Added Black Point and White Point filters with UI sliders and pixel inspector support.
+  - Replaced "Colored" with "Coloured" in UI copy.
+  - Made the Rotate (90°) dropdown text black on white for better contrast (#rotateSelect).
+  - Added a new "Rotate (any angle)" filter with a slider to pick any angle (-180..180).
+  - Implemented spatial-transform handling for arbitrary-angle rotation (canvas bounding-box calculation).
+  - Pixel inspector reports mapped source coordinates for flips, 90° rotations and for arbitrary-angle rotations (inverse mapping).
+  - Minor comments updated to use British spelling "coloured" where appropriate.
 */
 
 const srcCanvas = document.getElementById('sourceCanvas');
@@ -262,7 +290,7 @@ function boxMuller(){ // returns standard normal random
   return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
 }
 
-// Generate colored gaussian noise: independent R/G/B channels
+// Generate coloured gaussian noise: independent R/G/B channels
 function generateGaussianNoise(w=640,h=480,mean=127,sigma=40){
   srcCanvas.width = w; srcCanvas.height = h;
   resCanvas.width = w; resCanvas.height = h;
@@ -512,6 +540,26 @@ function updateParamUI(){
     const r = div.querySelector('#whiteRange');
     const v = div.querySelector('#whiteVal');
     r.addEventListener('input', ()=> v.textContent = r.value);
+  } else if(which === 'rotate'){
+    const div = document.createElement('div');
+    div.className = 'param-row';
+    // use select for discrete 90° steps
+    div.innerHTML = '<span>Rotate</span><select id="rotateSelect"><option value="0">0°</option><option value="90">90°</option><option value="180">180°</option><option value="270">270°</option></select>';
+    paramControls.appendChild(div);
+  } else if(which === 'rotateAny'){
+    const div = document.createElement('div');
+    div.className = 'param-row';
+    div.innerHTML = '<span>Angle (°)</span><input id="rotateAngleRange" type="range" min="-180" max="180" value="0"><span id="rotateAngleVal">0</span>';
+    paramControls.appendChild(div);
+    const r = div.querySelector('#rotateAngleRange');
+    const v = div.querySelector('#rotateAngleVal');
+    r.addEventListener('input', ()=> v.textContent = r.value);
+  } else if(which === 'flipx' || which === 'flipy'){
+    // no numeric params needed; show a short hint
+    const div = document.createElement('div');
+    div.className = 'param-row';
+    div.innerHTML = '<span>Transform</span><div style="color:var(--muted)">No parameters — this is a spatial transform.</div>';
+    paramControls.appendChild(div);
   } else {
     // no params
   }
@@ -525,12 +573,16 @@ function highlightFormula(which){
     'sepia':'Sepia:\n  R\\\' = 0.393*R + 0.769*G + 0.189*B\n  G\\\' = 0.349*R + 0.686*G + 0.168*B\n  B\\\' = 0.272*R + 0.534*G + 0.131*B',
     'invert':'Invert:\n  R\\\' = 255 - R\n  G\\\' = 255 - G\n  B\\\' = 255 - B',
     'brightness':'Brightness:\n  R\\\' = clamp(R + amount,0,255)\n  G\\\' = clamp(G + amount,0,255)\n  B\\\' = clamp(B + amount,0,255)\n  amount ∈ [-255,255]',
-    'contrast':'Contrast:\n  factor = (259*(amount + 255)) / (255*(259 - amount))\n  R\\\' = clamp(factor*(R - 128) + 128,0,255)\n  G\\\' = clamp(factor*(G - 128) + 128,0,255)\n  B\\\' = clamp(factor*(B - 128) + 128,0,255)\n  amount ∈ [-255,255]',
+    'contrast':'Contrast:\n  factor = (259*(amount + 255)) / (255*(259 - amount))\n  R\\\' = clamp(factor*(R - 128) + 128,0,255)\n  amount ∈ [-255,255]',
     'saturation':'Saturation:\n  gray = 0.299*R + 0.587*G + 0.114*B\n  factor = 1 + amount/100\n  R\\\' = clamp(gray + (R - gray)*factor,0,255)\n  amount ∈ [-100,100]',
     'hue':'Hue Rotate:\n  Convert RGB -> HSL, H\\\' = (H + degrees) mod 360, convert back HSL -> RGB\n  degrees ∈ [-180,180]',
     'vignette':'Vignette:\n  falloff = 1 - strength*(d^2)  (d = normalized distance from center)\n  R\\\' = clamp(R * falloff)\n  strength ∈ [0,100]',
     'blackpoint':'Black Point:\n  if v <= black: v\\\' = 0\n  else v\\\' = clamp((v - black) * 255 / (255 - black))\n  black ∈ [0,255]',
-    'whitepoint':'White Point:\n  if v >= white: v\\\' = 255\n  else v\\\' = clamp(v * 255 / white)\n  white ∈ [1,255]'
+    'whitepoint':'White Point:\n  if v >= white: v\\\' = 255\n  else v\\\' = clamp(v * 255 / white)\n  white ∈ [1,255]',
+    'rotate':'Rotate:\n  Spatial transform — rotates the image by 0/90/180/270 degrees around the origin (canvas center for full-size outputs).',
+    'rotateAny':'Rotate (any angle):\n  Spatial transform — rotate by any angle. Output dimensions are the rotated bounding box.',
+    'flipx':'Flip X:\n  Spatial transform — pixel (x,y) maps to (width-1-x, y)',
+    'flipy':'Flip Y:\n  Spatial transform — pixel (x,y) maps to (x, height-1-y)'
   };
   const text = base[which] || base['none'];
   formulaBox.textContent = text + "\n\n(See the full list of equations above for reference.)";
@@ -538,8 +590,64 @@ function highlightFormula(which){
 
 applyBtn.addEventListener('click', ()=>{
   if(!originalImageData) return alert('Load or generate an image first.');
-  const imageData = new ImageData(new Uint8ClampedArray(originalImageData.data), originalImageData.width, originalImageData.height);
   const selected = filterSelect.value;
+
+  // Spatial transforms (rotate/flip) are done via canvas transforms to preserve sampling and allow dimension swaps
+  if(selected === 'rotate' || selected === 'rotateAny' || selected === 'flipx' || selected === 'flipy'){
+    // get angle param if needed
+    let angle = 0;
+    if(selected === 'rotate'){
+      const sel = document.getElementById('rotateSelect');
+      angle = sel ? parseInt(sel.value, 10) : 0;
+      angle = ((angle % 360) + 360) % 360;
+    } else if(selected === 'rotateAny'){
+      const r = document.getElementById('rotateAngleRange');
+      angle = r ? parseFloat(r.value) : 0;
+    }
+
+    const w = originalImageData.width, h = originalImageData.height;
+
+    if(selected === 'flipx'){
+      resCanvas.width = w;
+      resCanvas.height = h;
+      resCtx.save();
+      resCtx.clearRect(0,0,resCanvas.width,resCanvas.height);
+      resCtx.translate(resCanvas.width, 0);
+      resCtx.scale(-1, 1);
+      resCtx.drawImage(srcCanvas, 0, 0);
+      resCtx.restore();
+      return;
+    } else if(selected === 'flipy'){
+      resCanvas.width = w;
+      resCanvas.height = h;
+      resCtx.save();
+      resCtx.clearRect(0,0,resCanvas.width,resCanvas.height);
+      resCtx.translate(0, resCanvas.height);
+      resCtx.scale(1, -1);
+      resCtx.drawImage(srcCanvas, 0, 0);
+      resCtx.restore();
+      return;
+    } else {
+      // rotate or rotateAny with arbitrary angle:
+      const rad = angle * Math.PI / 180;
+      const sin = Math.abs(Math.sin(rad)), cos = Math.abs(Math.cos(rad));
+      const newW = Math.round(w * cos + h * sin);
+      const newH = Math.round(w * sin + h * cos);
+      resCanvas.width = newW;
+      resCanvas.height = newH;
+      resCtx.save();
+      resCtx.clearRect(0,0,newW,newH);
+      // translate to center of result, rotate, draw source centered
+      resCtx.translate(newW/2, newH/2);
+      resCtx.rotate(rad);
+      resCtx.drawImage(srcCanvas, -w/2, -h/2);
+      resCtx.restore();
+      return;
+    }
+  }
+
+  // Non-spatial filters: operate on a copy of originalImageData and put result into res canvas
+  const imageData = new ImageData(new Uint8ClampedArray(originalImageData.data), originalImageData.width, originalImageData.height);
   let params = {};
   if(selected === 'brightness'){
     const r = document.getElementById('brightnessRange');
@@ -564,6 +672,9 @@ applyBtn.addEventListener('click', ()=>{
     params.white = r ? parseInt(r.value,10) : 255;
   }
   applyFilterToImageData(imageData, selected, params);
+  // ensure result canvas is same size as imageData
+  resCanvas.width = imageData.width;
+  resCanvas.height = imageData.height;
   resCtx.putImageData(imageData, 0, 0);
 });
 
@@ -590,6 +701,7 @@ inspectBtn.addEventListener('click', ()=>{
   const A = originalImageData.data[i+3];
   const selected = filterSelect.value;
   let html = `<strong>Inspecting pixel (${x},${y})</strong>\nOriginal RGB = (${R}, ${G}, ${B}), A=${A}\n\n`;
+
   if(selected === 'none'){
     html += 'No filter selected — original pixel unchanged.';
   } else if(selected === 'grayscale'){
@@ -615,7 +727,7 @@ inspectBtn.addEventListener('click', ()=>{
     const r2 = clamp(factor*(R - 128) + 128);
     const g2 = clamp(factor*(G - 128) + 128);
     const b2 = clamp(factor*(B - 128) + 128);
-    html += `Contrast calculation (amount = ${amt}):\nfactor = ${factor.toFixed(6)}\nR' = clamp(${factor.toFixed(6)}*(${R}-128)+128) = ${r2}\nG' = ${g2}\nB' = ${b2}\nResult RGB = (${r2}, ${g2}, ${b2})`;
+    html += `Contrast calculation (amount = ${amt}):\nfactor = ${factor.toFixed(6)}\nR' = clamp(${factor.toFixed(6)}*(${R}-128)+128) = ${r2}\nG' = clamp(${factor.toFixed(6)}*(${G}-128)+128) = ${g2}\nB' = clamp(${factor.toFixed(6)}*(${B}-128)+128) = ${b2}\nResult RGB = (${r2}, ${g2}, ${b2})`;
   } else if(selected === 'saturation'){
     const rInput = document.getElementById('saturationRange');
     const amt = rInput ? parseInt(rInput.value,10) : 0;
@@ -647,17 +759,77 @@ inspectBtn.addEventListener('click', ()=>{
     const black = rInput ? parseInt(rInput.value,10) : 0;
     const denom = (255 - black) || 1;
     const scale = 255 / denom;
-    function map(v){ return v <= black ? 0 : clamp((v - black) * scale); }
-    const r2 = map(R), g2 = map(G), b2 = map(B);
+    function mapB(v){ return v <= black ? 0 : clamp((v - black) * scale); }
+    const r2 = mapB(R), g2 = mapB(G), b2 = mapB(B);
     html += `Black Point (black = ${black}):\nIf v <= ${black} -> 0\nElse v' = clamp((v - ${black}) * 255 / (255 - ${black}))\nR' = ${R} => ${r2}\nG' = ${G} => ${g2}\nB' = ${B} => ${b2}\nResult RGB = (${r2}, ${g2}, ${b2})`;
   } else if(selected === 'whitepoint'){
     const rInput = document.getElementById('whiteRange');
     const white = rInput ? parseInt(rInput.value,10) : 255;
     const denom = (white) || 1;
     const scale = 255 / denom;
-    function map(v){ return v >= white ? 255 : clamp(v * scale); }
-    const r2 = map(R), g2 = map(G), b2 = map(B);
+    function mapW(v){ return v >= white ? 255 : clamp(v * scale); }
+    const r2 = mapW(R), g2 = mapW(G), b2 = mapW(B);
     html += `White Point (white = ${white}):\nIf v >= ${white} -> 255\nElse v' = clamp(v * 255 / ${white})\nR' = ${R} => ${r2}\nG' = ${G} => ${g2}\nB' = ${B} => ${b2}\nResult RGB = (${r2}, ${g2}, ${b2})`;
+  } else if(selected === 'flipx' || selected === 'flipy' || selected === 'rotate' || selected === 'rotateAny'){
+    // spatial transforms: compute mapped source coordinate and show the color from that source
+    const w = originalImageData.width, h = originalImageData.height;
+    let sx = x, sy = y;
+    if(selected === 'flipx'){
+      sx = w - 1 - x;
+      sy = y;
+      html += `Flip X (horizontal):\nTarget pixel (${x},${y}) is taken from source pixel (${sx},${sy}).\n`;
+    } else if(selected === 'flipy'){
+      sx = x;
+      sy = h - 1 - y;
+      html += `Flip Y (vertical):\nTarget pixel (${x},${y}) is taken from source pixel (${sx},${sy}).\n`;
+    } else if(selected === 'rotate'){
+      const sel = document.getElementById('rotateSelect');
+      const angle = sel ? parseInt(sel.value,10) : 0;
+      const a = ((angle % 360)+360)%360;
+      if(a === 0){
+        sx = x; sy = y;
+      } else if(a === 90){
+        sx = y;
+        sy = w - 1 - x;
+      } else if(a === 180){
+        sx = w - 1 - x;
+        sy = h - 1 - y;
+      } else if(a === 270){
+        sx = h - 1 - y;
+        sy = x;
+      }
+      html += `Rotate ${a}° (90° steps):\nTarget pixel (${x},${y}) is taken from source pixel (${sx},${sy}).\n`;
+    } else {
+      // rotateAny: inverse-rotate the target coordinate around centers to get source coordinate
+      const r = document.getElementById('rotateAngleRange');
+      const angle = r ? parseFloat(r.value) : 0;
+      const rad = angle * Math.PI / 180;
+      const sin = Math.sin(rad), cos = Math.cos(rad);
+      // output canvas bounding box size used when drawing arbitrary rotation
+      const outW = Math.round(w * Math.abs(cos) + h * Math.abs(sin));
+      const outH = Math.round(w * Math.abs(sin) + h * Math.abs(cos));
+      const cxOut = outW / 2, cyOut = outH / 2;
+      const cxSrc = w / 2, cySrc = h / 2;
+      // target point relative to out center
+      const dx = x - cxOut, dy = y - cyOut;
+      // inverse rotation by -rad: [sx_rel; sy_rel] = [ cos rad  sin rad; -sin rad  cos rad ] * [dx; dy]
+      const sx_rel = dx * cos + dy * sin;
+      const sy_rel = -dx * sin + dy * cos;
+      sx = Math.round(sx_rel + cxSrc);
+      sy = Math.round(sy_rel + cySrc);
+      html += `Rotate ${angle}° (any angle):\nTarget pixel (${x},${y}) is mapped (inverse-rotation) to source coordinate (${sx},${sy}).\n`;
+    }
+    // clamp coords and fetch color
+    if(sx < 0 || sx >= originalImageData.width || sy < 0 || sy >= originalImageData.height){
+      html += 'Mapped source coordinate is out of bounds.\n';
+    } else {
+      const si = (sy*originalImageData.width + sx)*4;
+      const sR = originalImageData.data[si];
+      const sG = originalImageData.data[si+1];
+      const sB = originalImageData.data[si+2];
+      const sA = originalImageData.data[si+3];
+      html += `Source RGB = (${sR}, ${sG}, ${sB}), A=${sA}\nResult RGB = (${sR}, ${sG}, ${sB})`;
+    }
   } else {
     html += 'Filter not recognized for inspection.';
   }
@@ -681,50 +853,107 @@ downloadBtn.addEventListener('click', async ()=>{
     return alert('Unable to determine image size for download.');
   }
 
+  const selected = filterSelect.value;
+
+  // For rotate/rotateAny compute output dims from angle
+  let rotateAngle = 0;
+  if(selected === 'rotate'){
+    const sel = document.getElementById('rotateSelect');
+    rotateAngle = sel ? parseInt(sel.value,10) : 0;
+    rotateAngle = ((rotateAngle%360)+360)%360;
+  } else if(selected === 'rotateAny'){
+    const r = document.getElementById('rotateAngleRange');
+    rotateAngle = r ? parseFloat(r.value) : 0;
+    rotateAngle = ((rotateAngle%360)+360)%360;
+  }
+
+  let outW = w, outH = h;
+  if(selected === 'rotate' || selected === 'rotateAny'){
+    const rad = rotateAngle * Math.PI / 180;
+    const sin = Math.abs(Math.sin(rad)), cos = Math.abs(Math.cos(rad));
+    outW = Math.round(w * cos + h * sin);
+    outH = Math.round(w * sin + h * cos);
+  }
+
   const off = document.createElement('canvas');
-  off.width = w;
-  off.height = h;
+  off.width = outW;
+  off.height = outH;
   const offCtx = off.getContext('2d');
 
   try {
-    if(lastLoadedImage && lastLoadedImage.naturalWidth && lastLoadedImage.naturalHeight){
-      // draw the original source image at full size
-      offCtx.drawImage(lastLoadedImage, 0, 0, w, h);
-    } else if(originalImageData){
-      // use the existing image data (already same size)
-      offCtx.putImageData(originalImageData, 0, 0);
+    // draw source into off canvas, applying spatial transforms first if needed
+    if(selected === 'flipx'){
+      offCtx.save();
+      offCtx.translate(off.width, 0);
+      offCtx.scale(-1, 1);
+      if(lastLoadedImage && lastLoadedImage.naturalWidth && lastLoadedImage.naturalHeight){
+        offCtx.drawImage(lastLoadedImage, 0, 0, off.width, off.height);
+      } else if(originalImageData){
+        offCtx.drawImage(srcCanvas, 0, 0, off.width, off.height);
+      }
+      offCtx.restore();
+    } else if(selected === 'flipy'){
+      offCtx.save();
+      offCtx.translate(0, off.height);
+      offCtx.scale(1, -1);
+      if(lastLoadedImage && lastLoadedImage.naturalWidth && lastLoadedImage.naturalHeight){
+        offCtx.drawImage(lastLoadedImage, 0, 0, off.width, off.height);
+      } else if(originalImageData){
+        offCtx.drawImage(srcCanvas, 0, 0, off.width, off.height);
+      }
+      offCtx.restore();
+    } else if(selected === 'rotate' || selected === 'rotateAny'){
+      offCtx.save();
+      // translate to center of output, rotate, draw image centered
+      offCtx.translate(off.width/2, off.height/2);
+      offCtx.rotate(rotateAngle * Math.PI / 180);
+      if(lastLoadedImage && lastLoadedImage.naturalWidth && lastLoadedImage.naturalHeight){
+        // draw the original at its natural size, centered (this may stretch depending on requested out dims)
+        offCtx.drawImage(lastLoadedImage, -w/2, -h/2, w, h);
+      } else if(originalImageData){
+        // draw viewport content centered and rotated
+        offCtx.drawImage(srcCanvas, -originalImageData.width/2, -originalImageData.height/2);
+      }
+      offCtx.restore();
+    } else {
+      // Non-spatial: draw the original on off and then apply pixel-based filters
+      if(lastLoadedImage && lastLoadedImage.naturalWidth && lastLoadedImage.naturalHeight){
+        offCtx.drawImage(lastLoadedImage, 0, 0, off.width, off.height);
+      } else if(originalImageData){
+        // draw viewport onto off, stretched to target size
+        offCtx.drawImage(srcCanvas, 0, 0, off.width, off.height);
+      }
     }
 
-    // get image data and apply same filter & params used in UI
-    let imageData = offCtx.getImageData(0,0,w,h);
-    const selected = filterSelect.value;
-    let params = {};
-    if(selected === 'brightness'){
-      const r = document.getElementById('brightnessRange');
-      params.amount = r ? parseInt(r.value,10) : 0;
-    } else if(selected === 'contrast'){
-      const r = document.getElementById('contrastRange');
-      params.amount = r ? parseInt(r.value,10) : 0;
-    } else if(selected === 'saturation'){
-      const r = document.getElementById('saturationRange');
-      params.amount = r ? parseInt(r.value,10) : 0;
-    } else if(selected === 'hue'){
-      const r = document.getElementById('hueRange');
-      params.deg = r ? parseInt(r.value,10) : 0;
-    } else if(selected === 'vignette'){
-      const r = document.getElementById('vignetteRange');
-      params.strength = r ? parseInt(r.value,10) : 0;
-    } else if(selected === 'blackpoint'){
-      const r = document.getElementById('blackRange');
-      params.black = r ? parseInt(r.value,10) : 0;
-    } else if(selected === 'whitepoint'){
-      const r = document.getElementById('whiteRange');
-      params.white = r ? parseInt(r.value,10) : 255;
+    // For non-spatial filters, apply the pixel algorithm on the off canvas image data
+    if(!(selected === 'flipx' || selected === 'flipy' || selected === 'rotate' || selected === 'rotateAny')){
+      let imageData = offCtx.getImageData(0,0,off.width,off.height);
+      let params = {};
+      if(selected === 'brightness'){
+        const r = document.getElementById('brightnessRange');
+        params.amount = r ? parseInt(r.value,10) : 0;
+      } else if(selected === 'contrast'){
+        const r = document.getElementById('contrastRange');
+        params.amount = r ? parseInt(r.value,10) : 0;
+      } else if(selected === 'saturation'){
+        const r = document.getElementById('saturationRange');
+        params.amount = r ? parseInt(r.value,10) : 0;
+      } else if(selected === 'hue'){
+        const r = document.getElementById('hueRange');
+        params.deg = r ? parseInt(r.value,10) : 0;
+      } else if(selected === 'vignette'){
+        const r = document.getElementById('vignetteRange');
+        params.strength = r ? parseInt(r.value,10) : 0;
+      } else if(selected === 'blackpoint'){
+        const r = document.getElementById('blackRange');
+        params.black = r ? parseInt(r.value,10) : 0;
+      } else if(selected === 'whitepoint'){
+        const r = document.getElementById('whiteRange');
+        params.white = r ? parseInt(r.value,10) : 255;
+      }
+      applyFilterToImageData(imageData, selected, params);
+      offCtx.putImageData(imageData, 0, 0);
     }
-
-    // Apply filter (this may be slow for very large images)
-    applyFilterToImageData(imageData, selected, params);
-    offCtx.putImageData(imageData, 0, 0);
 
     // Trigger download
     const dataURL = off.toDataURL('image/png');
