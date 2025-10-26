@@ -585,7 +585,7 @@ function highlightFormula(which){
     'flipy':'Flip Y:\n  Spatial transform — pixel (x,y) maps to (x, height-1-y)'
   };
   const text = base[which] || base['none'];
-  formulaBox.textContent = text + "\n\n(See the full list of equations above for reference.)";
+  formulaBox.textContent = text;
 }
 
 applyBtn.addEventListener('click', ()=>{
