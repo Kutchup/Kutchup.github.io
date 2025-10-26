@@ -191,6 +191,38 @@ Learn the html link syntax. `/page` starts from root. `./page` starts from curre
 
 A server always provides `index.html` from a folder type.
 
+# AI
+
+A minimal static site that allows users to sign up and log in via Auth0, and then send text prompts to an AI API through a Vercel serverless function. Vercel serverless function that proxies a prompt to an AI provider. Vercel serverless function to return public Auth0 client configuration. Use Google Gemini generative language. Change model via AI_MODEL env var. 
+
+## Setup
+
+1. Create an Auth0 application
+   - Go to https://auth0.com and create a tenant if you don't have one.
+   - Create a new Application (Regular Web Application or Single Page Application). For this project choose "Single Page Application".
+   - In the Application settings set:
+     - Allowed Callback URLs: `https://<your-vercel-domain>` and `http://localhost:3000` (if testing locally)
+     - Allowed Logout URLs: `https://<your-vercel-domain>` and `http://localhost:3000`
+     - Allowed Web Origins: `https://<your-vercel-domain>` and `http://localhost:3000`
+   - Copy the Domain (e.g., `dev-xyz.auth0.com`) and Client ID.
+
+2. Configure Vercel environment variables
+   - In your Vercel project settings, add the following Environment Variables:
+     - AUTH0_DOMAIN = your Auth0 domain (e.g., dev-xyz.auth0.com)
+     - AUTH0_CLIENT_ID = your Auth0 client id
+     - AI_API_KEY = your AI provider API key (e.g., OpenAI API key)
+     - Optionally: AI_MODEL (default: `gemini-2.5-flash`)
+   - Note: Do NOT store the Auth0 client secret or AI keys in the repo. Use Vercel environment variables.
+
+3. Deploy to Vercel
+   - Push this repository to GitHub.
+   - Import the repo in Vercel or use Vercel CLI to deploy.
+   - Ensure the project settings in Vercel include the environment variables from step 2.
+
+## Security / production notes
+- The client obtains a token via `getTokenSilently()` and forwards it to `api/ai`. Currently, `api/ai` checks only that an Authorization header exists. For production you should verify the token server-side using Auth0's JWKS endpoint to ensure the token is valid and belongs to your Auth0 tenant.
+- If you prefer stronger protection, restrict who can call `/api/ai` by checking the token issuer (`iss`) and audience (`aud`) claims.
+
 # Ideas
 
 Set a nice icon for the user's bookmarks. Apparently most browsers look in the root directory by default but I have used the most common name scheme and attached the file to the html code with one minimal string `favicon.ico`.
