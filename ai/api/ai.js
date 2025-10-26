@@ -3,8 +3,8 @@
 //
 // Response: { "result": "AI generated text..." }
 
-const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateText';
+// Note: This is for the Gemini API, not OpenAI.
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -29,26 +29,26 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'AI_API_KEY not configured in environment variables.' });
   }
 
-  const model = process.env.AI_MODEL || 'gemini-2.5-flash';
+  const model = process.env.AI_MODEL || 'gemini-1.5-flash';
 
   try {
-    const resp = await fetch(GEMINI_API_URL, {
+    const resp = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model,
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 800,
-        temperature: 0.7
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          maxOutputTokens: 800,
+          temperature: 0.7,
+        }
       })
     });
 
     if (!resp.ok) {
       const errText = await resp.text();
-      console.error('OpenAI error', resp.status, errText);
+      console.error('Gemini API error', resp.status, errText);
       return res.status(502).json({ error: 'AI provider returned an error', details: errText });
     }
 
@@ -57,8 +57,9 @@ module.exports = async (req, res) => {
     // Extract a clean assistant text if present
     let assistantText = '';
     try {
-      assistantText = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+      assistantText = data.candidates[0].content.parts[0].text;
     } catch (e) {
+      // It's fine if we can't extract text, we'll return the full response below.
       assistantText = '';
     }
 
