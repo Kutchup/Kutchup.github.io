@@ -4,7 +4,7 @@
 // Response: { "result": "AI generated text..." }
 
 // Note: This is for the Gemini API, not OpenAI.
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'AI_API_KEY not configured in environment variables.' });
   }
 
-  const model = process.env.AI_MODEL || 'gemini-1.5-flash';
+  const model = process.env.AI_MODEL || 'gemini-2.5-flash';
 
   try {
     const resp = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
