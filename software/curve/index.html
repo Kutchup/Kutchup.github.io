@@ -2,30 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Curve</title>
   <link rel="icon" href="/favicon.ico">
   <meta name="description" content="Bezier Curve Editor">
   <style>
     body { 
-      background: #222; 
-      color: #eee; 
+      background-color: rgb(255, 231, 206);
+      font-family: 'Lucida Sans Unicode', Trebuchet MS;
+      color: rgb(38, 38, 38);
       display: flex; 
       flex-direction: column; 
       align-items: center; 
       margin: 0; 
-      height: 100vh; 
+      min-height: 100vh; 
       justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .back-link {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: rgb(97, 97, 255);
+      text-decoration: none;
+      font-size: 1.1em;
+    }
+    .back-link:hover {
+      cursor: help;
+      text-decoration: underline;
+    }
+    h1 { 
+      color: rgb(255, 97, 97);
+      font-size: 1.8em; 
+      margin-bottom: 0.5em; 
+      font-weight: 600;
     }
     canvas {
-      background: #181818;
-      border: 1px solid #444;
+      background: rgb(255, 241, 216);
+      border: 2px solid rgb(255, 207, 166);
       cursor: crosshair;
-      box-shadow: 0 0 16px #000a;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      border-radius: 4px;
     }
-    h1 { font-size: 1.2em; margin-bottom: 0.5em; }
   </style>
 </head>
 <body>
+  <a href="/software/" class="back-link">← Back to Software</a>
   <h1>Bezier Curve Editor</h1>
   <canvas id="bezier" width="800" height="600"></canvas>
   <script>
@@ -47,7 +70,7 @@
 
     function drawGrid() {
       ctx.save();
-      ctx.strokeStyle = "#333";
+      ctx.strokeStyle = "rgb(255, 207, 166)";
       ctx.lineWidth = 1;
       for (let x = 0; x < canvas.width; x += gridStep) {
         ctx.beginPath();
@@ -66,7 +89,7 @@
 
     function drawCurve() {
       ctx.save();
-      ctx.strokeStyle = "#45f6";
+      ctx.strokeStyle = "rgb(97, 97, 255)";
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(points[0].x, points[0].y);
@@ -81,7 +104,7 @@
 
     function drawControlLines() {
       ctx.save();
-      ctx.strokeStyle = "#fa4a";
+      ctx.strokeStyle = "rgb(255, 97, 97)";
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(points[0].x, points[0].y);
@@ -97,9 +120,9 @@
         ctx.save();
         ctx.beginPath();
         ctx.arc(pt.x, pt.y, 10, 0, 2 * Math.PI);
-        ctx.fillStyle = idx === 0 || idx === 3 ? "#0afc" : "#fd0c";
+        ctx.fillStyle = idx === 0 || idx === 3 ? "rgb(97, 97, 255)" : "rgb(255, 97, 97)";
         ctx.fill();
-        ctx.strokeStyle = "#fff";
+        ctx.strokeStyle = "rgb(38, 38, 38)";
         ctx.lineWidth = 2;
         ctx.stroke();
         ctx.restore();
