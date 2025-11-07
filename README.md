@@ -38,9 +38,9 @@ Stylesheet body
 </style>
 ```
 
-- Background: rgb(255, 231, 206) (warm beige)
-- Accent color: rgb(255, 97, 97) (coral red for headings)
-- Link color: rgb(97, 97, 255) (blue)
+- Background: `rgb(255, 231, 206)` (warm beige)
+- Accent color: `rgb(255, 97, 97)` (coral red for headings)
+- Link color: `rgb(97, 97, 255)` (blue)
 - Font: 'Lucida Sans Unicode', Trebuchet MS
 
 ## Fonts
