@@ -2,6 +2,19 @@
 
 This directory contains the AI frontend application that uses Auth0 for authentication and Vercel serverless functions to interact with an AI API.
 
+## Project Structure
+
+```
+/
+├── ai/
+│   ├── index.html          # AI frontend UI
+│   └── README.md           # This file
+├── api/                     # Vercel serverless functions (root level)
+│   ├── config.js           # Returns Auth0 config
+│   └── ai.js               # AI API proxy
+└── vercel.json             # Vercel configuration
+```
+
 ## Setup Instructions
 
 ### 1. Auth0 Configuration
@@ -42,6 +55,8 @@ In your Vercel project settings, add these environment variables:
 
 ## API Endpoints
 
+The serverless functions are located in the `/api` directory at the project root.
+
 ### `/api/config` (GET)
 Returns the public Auth0 configuration needed by the frontend:
 ```json
@@ -63,7 +78,7 @@ Accepts AI prompts from authenticated users:
 
 **Headers:**
 ```
-Authorization: Bearer <auth0-token>
+Authorization: ******
 ```
 
 **Response:**
@@ -82,6 +97,12 @@ To test locally:
 3. Set up local environment variables in `.env` (not committed)
 4. Access the app at `http://localhost:3000/ai/`
 
+## Vercel Configuration
+
+The `vercel.json` file at the project root configures:
+- Serverless function settings (memory, timeout)
+- Functions are automatically routed from `/api/*` paths
+
 ## Security Notes
 
 - The AI API key is never exposed to the client
@@ -94,6 +115,10 @@ To test locally:
 ### "Could not fetch config" Error
 - Ensure `AUTH0_DOMAIN` and `AUTH0_CLIENT_ID` are set in Vercel environment variables
 - Check that `/api/config` endpoint is accessible
+
+### "Unmatched function pattern" Error
+- Ensure API files are in `/api/` directory at project root
+- Check `vercel.json` uses correct pattern: `"api/*.js"`
 
 ### Authentication Loop
 - Verify Auth0 callback URLs match your deployment domain
