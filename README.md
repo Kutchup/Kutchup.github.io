@@ -28,6 +28,7 @@ console.log("255*(1-grd) " + 255*(1-grd)) // 157.59866713122318
 console.log("255*(1-0.5*grd) " + 255*(1-0.5*grd)) // 206.2993335656116
 console.log("255*(1-0.25*grd) " + 255*(1-0.25*grd)) // 230.6496667828058
 ```
+
 Stylesheet body
 ```html
 <style>
@@ -36,6 +37,11 @@ Stylesheet body
     }
 </style>
 ```
+
+- Background: rgb(255, 231, 206) (warm beige)
+- Accent color: rgb(255, 97, 97) (coral red for headings)
+- Link color: rgb(97, 97, 255) (blue)
+- Font: 'Lucida Sans Unicode', Trebuchet MS
 
 ## Fonts
 
