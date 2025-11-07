@@ -4,19 +4,79 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>AI</title>
+  <link rel="icon" href="/favicon.ico">
   <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial; max-width: 900px; margin: 2rem auto; padding: 1rem; line-height: 1.5; }
-    header { display:flex; gap:1rem; align-items:center; justify-content:space-between; margin-bottom:1rem; }
-    button { padding:0.5rem 1rem; border-radius:6px; border:1px solid #ddd; background:#f7f7f7; cursor:pointer; }
-    textarea { width:100%; min-height:140px; padding:0.75rem; border-radius:6px; border:1px solid #ddd; }
+    body { 
+      font-family: 'Lucida Sans Unicode', Trebuchet MS;
+      max-width: 900px; 
+      margin: 2rem auto; 
+      padding: 1rem; 
+      line-height: 1.5;
+      background-color: rgb(255, 231, 206);
+      color: rgb(38, 38, 38);
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 10px;
+      color: rgb(97, 97, 255);
+      text-decoration: none;
+      font-size: 1.1em;
+    }
+    .back-link:hover {
+      cursor: help;
+      text-decoration: underline;
+    }
+    header { 
+      display:flex; 
+      gap:1rem; 
+      align-items:center; 
+      justify-content:space-between; 
+      margin-bottom:1rem; 
+    }
+    h1 {
+      color: rgb(255, 97, 97);
+      font-size: 1.8em;
+      margin: 0;
+    }
+    button { 
+      padding:0.5rem 1rem; 
+      border-radius:6px; 
+      border:1px solid rgb(255, 207, 166); 
+      background: rgb(255, 241, 216);
+      color: rgb(38, 38, 38);
+      cursor:pointer;
+      font-family: inherit;
+    }
+    button:hover {
+      background: rgb(255, 231, 206);
+    }
+    textarea { 
+      width:100%; 
+      min-height:140px; 
+      padding:0.75rem; 
+      border-radius:6px; 
+      border:1px solid rgb(255, 207, 166);
+      background: rgb(255, 251, 246);
+      color: rgb(38, 38, 38);
+      font-family: inherit;
+    }
     .profile { display:flex; gap:0.75rem; align-items:center; }
     .profile img { width:40px; height:40px; border-radius:50%; object-fit:cover; }
-    pre { background:#111; color:#0f0; padding:1rem; border-radius:8px; overflow:auto; white-space:pre-wrap; }
+    pre { 
+      background: rgb(255, 251, 246);
+      color: rgb(38, 38, 38);
+      padding:1rem; 
+      border-radius:8px; 
+      overflow:auto; 
+      white-space:pre-wrap;
+      border:1px solid rgb(255, 207, 166);
+    }
     .hidden { display:none; }
-    footer { margin-top:2rem; color:#555; font-size:0.9rem; }
+    footer { margin-top:2rem; color: rgb(97, 97, 97); font-size:0.9rem; }
   </style>
 </head>
 <body>
+  <a href="/" class="back-link">← Back to Home</a>
   <header>
     <h1>Artificial Intelligence (AI) Frontend by Kutchup</h1>
     <div>
@@ -39,7 +99,7 @@
   <main>
     <p>Type a prompt and send it to the AI:</p>
 
-    <div id="authNotice" style="color:#b00; margin-bottom:1rem;"></div>
+    <div id="authNotice" style="color:rgb(255, 97, 97); margin-bottom:1rem;"></div>
 
     <textarea id="prompt" placeholder="Write something to the AI..."></textarea>
     <div style="margin-top:0.75rem; display:flex; gap:0.75rem;">

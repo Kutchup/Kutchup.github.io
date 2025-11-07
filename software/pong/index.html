@@ -2,12 +2,46 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pong</title>
     <link rel="icon" href="/favicon.ico">
-    <link rel="stylesheet" href="style.css">
     <meta name="description" content="Simple Pong Game">
+    <style>
+        body {
+            background-color: rgb(255, 231, 206);
+            font-family: 'Lucida Sans Unicode', Trebuchet MS;
+            color: rgb(38, 38, 38);
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 {
+            color: rgb(255, 97, 97);
+            font-size: 2em;
+            margin: 0 0 10px 0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: rgb(97, 97, 255);
+            text-decoration: none;
+            font-size: 1.1em;
+        }
+        .back-link:hover {
+            cursor: help;
+            text-decoration: underline;
+        }
+        canvas {
+            background: #000;
+            display: block;
+            margin: 0 auto;
+            border-radius: 4px;
+        }
+    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <a href="/software/" class="back-link">← Back to Software</a>
     <h1>Simple Pong Game</h1>
     <canvas id="pong" width="800" height="500"></canvas>
     <script src="script.js"></script>
