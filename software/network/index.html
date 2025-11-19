@@ -84,69 +84,71 @@
     .node {
       cursor: pointer;
       transition: r 0.2s;
-      stroke: #22243a;
+      fill: rgb(255, 241, 216);
+      stroke: rgb(97, 97, 255);
       stroke-width: 4;
-      filter: drop-shadow(0 2px 8px #0004);
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2));
     }
     .node.critical {
-      stroke: #ffe066;
+      stroke: rgb(255, 165, 0);
       stroke-width: 6;
-      filter: drop-shadow(0 0 12px #fff599);
+      filter: drop-shadow(0 0 12px rgba(255, 165, 0, 0.6));
     }
     .edge {
-      stroke: #7295c9;
+      stroke: rgb(97, 97, 255);
       stroke-width: 2.7;
       marker-end: url(#arrow);
       transition: stroke 0.25s, stroke-width 0.2s;
-      opacity: 0.88;
+      opacity: 0.7;
     }
     .edge.critical {
-      stroke: #ffe066;
+      stroke: rgb(255, 165, 0);
       stroke-width: 5;
-      filter: drop-shadow(0 0 8px #ffe066cc);
+      filter: drop-shadow(0 0 8px rgba(255, 165, 0, 0.8));
       opacity: 1.0;
     }
     .edge-label {
-      fill: #e2eaff;
+      fill: rgb(38, 38, 38);
       font-size: 13.5px;
       pointer-events: none;
-      text-shadow: 1px 1px 2px #000a;
+      text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.8);
       font-family: 'Jetbrains Mono', 'Menlo', 'Consolas', monospace;
     }
     .edge-label.slack {
-      fill: #f8864a;
+      fill: rgb(200, 80, 80);
       font-size: 12px;
       font-style: italic;
     }
     .node-label {
-      fill: #fff;
+      fill: rgb(38, 38, 38);
       font-size: 18px;
       pointer-events: none;
       font-weight: bold;
-      text-shadow: 1px 1px 2px #000a;
+      text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.9);
     }
     .node-times {
-      fill: #a5d1ff;
+      fill: rgb(97, 97, 255);
       font-size: 14px;
       pointer-events: none;
-      text-shadow: 1px 1px 2px #000a;
+      text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.8);
     }
     .node-info {
-      fill: #ffeb3b;
+      fill: rgb(255, 165, 0);
       font-size: 10px;
       font-style: italic;
     }
-    .node:hover { filter: drop-shadow(0 0 18px #9cf9); }
+    .node:hover { filter: drop-shadow(0 0 18px rgba(97, 97, 255, 0.6)); }
     .tooltip {
       position: absolute;
       z-index: 10;
       pointer-events: none;
-      background: #22243aee;
-      color: #fff;
+      background: rgba(255, 241, 216, 0.98);
+      color: rgb(38, 38, 38);
       padding: 8px 13px;
       border-radius: 6px;
       font-size: 1rem;
-      box-shadow: 0 2px 8px #000b;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+      border: 2px solid rgb(255, 207, 166);
       min-width: 160px;
       max-width: 360px;
       font-family: 'Inter', system-ui, Arial, sans-serif;
@@ -156,7 +158,7 @@
       margin-top: 6px;
       font-size: 16px;
       text-align: center;
-      color: #b3e5fc;
+      color: rgb(38, 38, 38);
     }
     #legend span {
       display: inline-block;
@@ -165,24 +167,25 @@
       border-radius: 3px;
     }
     #legend .crit {
-      background: #ffe06655;
-      color: #b28300;
+      background: rgba(255, 165, 0, 0.25);
+      color: rgb(200, 100, 0);
       font-weight: bold;
     }
     #legend .edge {
-      color: #b3e5fc;
+      color: rgb(97, 97, 255);
     }
     .info-panel {
-      background: #1a1b25;
+      background: rgb(255, 251, 246);
       border-radius: 8px;
       margin: 14px 0 0 0;
       padding: 13px 20px;
       font-size: 1rem;
-      color: #f5f5fa;
-      box-shadow: 0 2px 14px #0005;
+      color: rgb(38, 38, 38);
+      box-shadow: 0 2px 14px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgb(255, 207, 166);
     }
     .info-panel strong {
-      color: #ffe066;
+      color: rgb(255, 97, 97);
       font-weight: bold;
     }
     .info-panel table {
@@ -192,12 +195,12 @@
     }
     .info-panel th, .info-panel td {
       padding: 3px 7px;
-      border-bottom: 1px solid #2c355c;
+      border-bottom: 1px solid rgb(255, 207, 166);
     }
     .info-panel th {
-      color: #97c3ff;
+      color: rgb(97, 97, 255);
       font-weight: 600;
-      background: #181c28;
+      background: rgb(255, 241, 216);
     }
     .info-panel td {
       font-family: 'Jetbrains Mono', 'Menlo', 'Consolas', monospace;
@@ -375,7 +378,7 @@
       svg.innerHTML = `
         <defs>
           <marker id="arrow" markerWidth="16" markerHeight="16" refX="13" refY="8" orient="auto" markerUnits="strokeWidth">
-            <path d="M2,2 L14,8 L2,14 L6,8 Z" fill="#b3e5fc"/>
+            <path d="M2,2 L14,8 L2,14 L6,8 Z" fill="rgb(97, 97, 255)"/>
           </marker>
         </defs>
       `;
@@ -435,7 +438,7 @@
               <b>Edge ${nodes.find(n=>n.id===from).name}&rarr;${nodes.find(n=>n.id===to).name}</b><br>
               Capacity: <b>${e.capacity}</b><br>
               Slack: <b>${cpm.edgeSlack[`${from}->${to}`]}</b>
-              ${cpm.edgeSlack[`${from}->${to}`]===0 ? '<br><span style="color:#ffe066;">Critical Path</span>' : ''}
+              ${cpm.edgeSlack[`${from}->${to}`]===0 ? '<br><span style="color:rgb(255, 165, 0);font-weight:bold;">Critical Path</span>' : ''}
             `);
             drawGraph({nodes,edges},cpm,highlightCrit,animateStep,null,{from,to});
           };
@@ -476,9 +479,9 @@
     function showInfoPanel(graph, cpm) {
       const panel = document.getElementById("infoPanel");
       let html = `
-        <strong>Project Duration:</strong> <span style="color:#ffe066;font-size:1.18em">${cpm.duration}</span><br>
+        <strong>Project Duration:</strong> <span style="color:rgb(255, 165, 0);font-size:1.18em">${cpm.duration}</span><br>
         <strong>Critical Path(s):</strong> 
-        <span style="color:#ffe066">${cpm.allCritPaths.map(path=>path.map(id=>graph.nodes.find(n=>n.id===id).name).join('&rarr;')).join('; ')}</span>
+        <span style="color:rgb(255, 165, 0)">${cpm.allCritPaths.map(path=>path.map(id=>graph.nodes.find(n=>n.id===id).name).join('&rarr;')).join('; ')}</span>
         <br>
         <strong>Node Schedule Table</strong>:
         <table>
@@ -491,7 +494,7 @@
               <td>${n.layer}</td>
               <td>${cpm.early[n.id]}</td>
               <td>${cpm.late[n.id]}</td>
-              <td style="color:${cpm.nodeSlack[n.id]==0?'#ffe066':'#f8864a'};font-weight:bold">${cpm.nodeSlack[n.id]}</td>
+              <td style="color:${cpm.nodeSlack[n.id]==0?'rgb(255, 165, 0)':'rgb(200, 80, 80)'};font-weight:bold">${cpm.nodeSlack[n.id]}</td>
             </tr>`).join('')}
         </table>
         <strong>Edge Slack Table</strong>:
@@ -504,10 +507,10 @@
               <td>${graph.nodes.find(n=>n.id===e.from).name}</td>
               <td>${graph.nodes.find(n=>n.id===e.to).name}</td>
               <td>${e.capacity}</td>
-              <td style="color:${cpm.edgeSlack[`${e.from}->${e.to}`]==0?'#ffe066':'#f8864a'};font-weight:bold">${cpm.edgeSlack[`${e.from}->${e.to}`]}</td>
+              <td style="color:${cpm.edgeSlack[`${e.from}->${e.to}`]==0?'rgb(255, 165, 0)':'rgb(200, 80, 80)'};font-weight:bold">${cpm.edgeSlack[`${e.from}->${e.to}`]}</td>
             </tr>`).join('')}
         </table>
-        <span style="color:#97c3ff;">Advanced Critical Path Analysis Visualisation. Hover nodes/edges for details.</span>
+        <span style="color:rgb(97, 97, 255);">Advanced Critical Path Analysis Visualisation. Hover nodes/edges for details.</span>
       `;
       panel.innerHTML = html;
     }
