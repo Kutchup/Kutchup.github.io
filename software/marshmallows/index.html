@@ -490,8 +490,10 @@
     
     // Box-Muller transform for normal distribution
     function randomNormal(mean, stdDev) {
-      let u1 = Math.random();
-      let u2 = Math.random();
+      let u1 = 0, u2 = 0;
+      // Ensure we never get 0 which would cause log(0) = -Infinity
+      while (u1 === 0) u1 = Math.random();
+      while (u2 === 0) u2 = Math.random();
       let z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
       return z0 * stdDev + mean;
     }
@@ -584,7 +586,7 @@
         const percentage = (angle / 360 * 100).toFixed(1);
         const sizeDiv = document.createElement('div');
         sizeDiv.className = 'slice-size';
-        sizeDiv.innerHTML = `<strong>${names[index]}:</strong><br>${percentage}% (${angle}°)`;
+        sizeDiv.innerHTML = `<strong>${names[index]}:</strong><br>${percentage}% (${angle.toFixed(1)}°)`;
         sliceSizesDiv.appendChild(sizeDiv);
       });
     }
