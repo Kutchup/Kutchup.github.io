@@ -490,10 +490,9 @@
     
     // Box-Muller transform for normal distribution
     function randomNormal(mean, stdDev) {
-      let u1 = 0, u2 = 0;
-      // Ensure we never get 0 which would cause log(0) = -Infinity
-      while (u1 === 0) u1 = Math.random();
-      while (u2 === 0) u2 = Math.random();
+      // Use Number.MIN_VALUE to avoid zero which would cause log(0) = -Infinity
+      let u1 = Math.random() || Number.MIN_VALUE;
+      let u2 = Math.random() || Number.MIN_VALUE;
       let z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
       return z0 * stdDev + mean;
     }
