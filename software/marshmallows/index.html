@@ -293,15 +293,13 @@
         </div>
       </div>
 
-      <div class="marshmallow-display">🍥</div>
+      <div class="marshmallow-display" id="marshmallow-display">🍥</div>
 
       <div class="controls">
         <button id="eat-button">Eat Marshmallow Now</button>
         <button id="wait-button">Wait for Pack</button>
         <button id="reset-marshmallow" style="display:none;">Try Again</button>
       </div>
-
-      <div id="marshmallow-result" class="result-message" style="display:none;"></div>
     </div>
 
     <!-- Slice of Cake Experiment -->
@@ -443,15 +441,16 @@
       document.getElementById('wait-button').disabled = true;
       document.getElementById('reset-marshmallow').style.display = 'inline-block';
       
-      const resultDiv = document.getElementById('marshmallow-result');
-      resultDiv.style.display = 'block';
+      const marshmallowDisplay = document.getElementById('marshmallow-display');
       
       if (success) {
-        resultDiv.className = 'result-message success';
-        resultDiv.innerHTML = '🎉 Success! You waited the full 10 minutes!<br>You earned a whole pack of marshmallows! 🍥🍥🍥🍥🍥';
+        marshmallowDisplay.innerHTML = '🎉 Success! You waited the full 10 minutes!<br>You earned a whole pack of marshmallows!<br>🍥🍥🍥🍥🍥';
+        marshmallowDisplay.style.fontSize = '1.5em';
+        marshmallowDisplay.style.color = '#2e7d32';
       } else {
-        resultDiv.className = 'result-message failure';
-        resultDiv.innerHTML = '🍥 You ate the marshmallow!<br>Instant gratification, but no bonus pack.';
+        marshmallowDisplay.innerHTML = '🍥 You ate the marshmallow!<br>Instant gratification, but no bonus pack.';
+        marshmallowDisplay.style.fontSize = '1.5em';
+        marshmallowDisplay.style.color = '#c62828';
       }
     }
 
@@ -476,7 +475,11 @@
       document.getElementById('eat-button').disabled = false;
       document.getElementById('wait-button').disabled = false;
       document.getElementById('reset-marshmallow').style.display = 'none';
-      document.getElementById('marshmallow-result').style.display = 'none';
+      
+      const marshmallowDisplay = document.getElementById('marshmallow-display');
+      marshmallowDisplay.innerHTML = '🍥';
+      marshmallowDisplay.style.fontSize = '4em';
+      marshmallowDisplay.style.color = '';
       
       updateClock();
       generateProfile();
@@ -484,6 +487,14 @@
 
     // Slice of Cake Experiment
     const cakeNames = ['Alice', 'Bob', 'Carol', 'Dave', 'Emma', 'Frank', 'Grace', 'Henry'];
+    
+    // Box-Muller transform for normal distribution
+    function randomNormal(mean, stdDev) {
+      let u1 = Math.random();
+      let u2 = Math.random();
+      let z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+      return z0 * stdDev + mean;
+    }
     
     function setupCakeExperiment() {
       const selectedNames = [];
@@ -506,23 +517,23 @@
       const slicesGroup = document.getElementById('slices-group');
       slicesGroup.innerHTML = '';
       
-      // Generate random slice sizes (angles in degrees)
-      // Ensure they sum to 360
+      // Generate slice sizes using normal distribution
+      // Mean: 90 degrees (equal slices), Standard deviation: 25 degrees for variety
       let angles = [];
-      let remainingAngle = 360;
+      const mean = 90; // 360/4 = 90 degrees per person for equal distribution
+      const stdDev = 25; // standard deviation for variation
       
-      // Generate 3 random angles
-      for (let i = 0; i < 3; i++) {
-        const minAngle = 30; // minimum 30 degrees per slice
-        const maxAngle = remainingAngle - (30 * (3 - i)); // leave room for remaining slices
-        const angle = Math.floor(Math.random() * (maxAngle - minAngle + 1)) + minAngle;
+      // Generate 4 angles using normal distribution
+      for (let i = 0; i < 4; i++) {
+        let angle = randomNormal(mean, stdDev);
+        // Clamp to reasonable range (minimum 20 degrees, maximum 180 degrees)
+        angle = Math.max(20, Math.min(180, angle));
         angles.push(angle);
-        remainingAngle -= angle;
       }
-      angles.push(remainingAngle); // last slice gets remainder
       
-      // Shuffle to randomize which person gets which size
-      angles.sort(() => Math.random() - 0.5);
+      // Normalize so they sum to 360
+      const sum = angles.reduce((a, b) => a + b, 0);
+      angles = angles.map(a => (a / sum) * 360);
       
       // Draw slices
       const colors = ['#FFB6C1', '#87CEEB', '#98FB98', '#FFD700'];
