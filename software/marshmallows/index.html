@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marshmallows</title>
+  <link rel="icon" href="/favicon.ico">
+  <meta name="description" content="The Marshmallow Experiment and Slice of Cake">
+  <style>
+    :root{
+      --bg: rgb(255, 231, 206);
+      --panel: rgb(255, 241, 216);
+      --muted: rgb(38, 38, 38);
+      --card: rgb(255, 241, 216);
+      --border: rgb(255, 207, 166);
+      --red: rgb(255, 97, 97);
+      --blue: rgb(97, 97, 255);
+    }
+    html,body{
+      height:100%;
+      margin:0;
+      background: var(--bg);
+      color: var(--muted);
+      font-family: 'Lucida Sans Unicode', Trebuchet MS;
+      overflow-x: hidden;
+    }
+    .back-link {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: var(--blue);
+      text-decoration: none;
+      font-size: 1.1em;
+    }
+    .back-link:hover {
+      cursor: help;
+      text-decoration: underline;
+    }
+    h1{ 
+      margin:20px 0 10px 0; 
+      color: var(--red);
+      font-weight:600;
+      text-align: center;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .experiment-selector {
+      text-align: center;
+      margin: 30px 0;
+      padding: 20px;
+      background: var(--panel);
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border: 1px solid var(--border);
+    }
+    .experiment-selector label {
+      margin: 0 20px;
+      font-size: 1.1em;
+      cursor: pointer;
+    }
+    .experiment-selector input[type="radio"] {
+      margin-right: 8px;
+      cursor: pointer;
+    }
+    .experiment {
+      display: none;
+      background: var(--card);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.1);
+      border: 2px solid var(--border);
+      margin: 20px 0;
+    }
+    .experiment.active {
+      display: block;
+    }
+    .profile-card {
+      background: var(--panel);
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border: 1px solid var(--border);
+    }
+    .profile-card h3 {
+      color: var(--red);
+      margin-top: 0;
+    }
+    .profile-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin: 15px 0;
+    }
+    .profile-info div {
+      padding: 8px;
+    }
+    .profile-info strong {
+      color: var(--red);
+    }
+    .clock-container {
+      text-align: center;
+      margin: 30px 0;
+    }
+    .clock {
+      width: 300px;
+      height: 300px;
+      border: 8px solid var(--muted);
+      border-radius: 50%;
+      position: relative;
+      margin: 20px auto;
+      background: white;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    .clock-center {
+      width: 16px;
+      height: 16px;
+      background: var(--red);
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+    .clock-hand {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform-origin: bottom center;
+      background: var(--muted);
+      border-radius: 2px;
+    }
+    .hour-hand {
+      width: 6px;
+      height: 80px;
+      margin-left: -3px;
+    }
+    .minute-hand {
+      width: 4px;
+      height: 120px;
+      margin-left: -2px;
+      background: var(--red);
+    }
+    .clock-numbers {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+    .clock-number {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      text-align: center;
+      line-height: 30px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    .marshmallow-display {
+      text-align: center;
+      font-size: 4em;
+      margin: 20px 0;
+    }
+    .timer-display {
+      text-align: center;
+      font-size: 2em;
+      font-weight: bold;
+      color: var(--red);
+      margin: 20px 0;
+    }
+    .controls {
+      text-align: center;
+      margin: 30px 0;
+    }
+    button {
+      padding: 12px 24px;
+      margin: 0 10px;
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--muted);
+      border: 2px solid var(--border);
+      font-size: 1.1em;
+      cursor: pointer;
+      font-family: 'Lucida Sans Unicode', Trebuchet MS;
+    }
+    button:hover {
+      background: var(--panel);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .result-message {
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: bold;
+      margin: 20px 0;
+      padding: 20px;
+      border-radius: 8px;
+      background: var(--panel);
+    }
+    .success {
+      color: #2e7d32;
+    }
+    .failure {
+      color: #c62828;
+    }
+    .cake-container {
+      text-align: center;
+      margin: 30px 0;
+    }
+    .cake-svg {
+      max-width: 500px;
+      margin: 20px auto;
+      display: block;
+    }
+    .names-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      max-width: 400px;
+      margin: 20px auto;
+    }
+    .name-card {
+      background: var(--panel);
+      padding: 15px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      font-weight: bold;
+      text-align: center;
+    }
+    .cake-info {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 1.1em;
+    }
+    .slice-sizes {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      max-width: 400px;
+      margin: 20px auto;
+    }
+    .slice-size {
+      background: var(--panel);
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <a href="/software/" class="back-link">← Back to Software</a>
+  <div class="container">
+    <h1>Marshmallows</h1>
+    
+    <div class="experiment-selector">
+      <label>
+        <input type="radio" name="experiment" value="marshmallow" checked>
+        The Marshmallow Experiment
+      </label>
+      <label>
+        <input type="radio" name="experiment" value="cake">
+        Slice of Cake
+      </label>
+    </div>
+
+    <!-- Marshmallow Experiment -->
+    <div id="marshmallow-experiment" class="experiment active">
+      <div class="profile-card">
+        <h3>Participant Profile</h3>
+        <div class="profile-info">
+          <div><strong>Name:</strong> <span id="profile-name"></span></div>
+          <div><strong>Age:</strong> <span id="profile-age"></span></div>
+          <div><strong>Occupation:</strong> <span id="profile-occupation"></span></div>
+          <div><strong>Personality:</strong> <span id="profile-personality"></span></div>
+          <div><strong>Favorite Color:</strong> <span id="profile-color"></span></div>
+          <div><strong>Hobby:</strong> <span id="profile-hobby"></span></div>
+        </div>
+      </div>
+
+      <div class="clock-container">
+        <h3>Time Remaining</h3>
+        <div class="timer-display" id="timer-display">10:00</div>
+        <div class="clock">
+          <div class="clock-numbers" id="clock-numbers"></div>
+          <div class="clock-hand hour-hand" id="hour-hand"></div>
+          <div class="clock-hand minute-hand" id="minute-hand"></div>
+          <div class="clock-center"></div>
+        </div>
+      </div>
+
+      <div class="marshmallow-display" id="marshmallow-display">🍥</div>
+
+      <div class="controls">
+        <button id="eat-button">Eat Marshmallow Now</button>
+        <button id="wait-button">Wait for Pack</button>
+        <button id="reset-marshmallow" style="display:none;">Try Again</button>
+      </div>
+    </div>
+
+    <!-- Slice of Cake Experiment -->
+    <div id="cake-experiment" class="experiment">
+      <h3 style="text-align: center;">Four Friends Share a Cake</h3>
+      
+      <div class="names-container">
+        <div class="name-card" id="name1"></div>
+        <div class="name-card" id="name2"></div>
+        <div class="name-card" id="name3"></div>
+        <div class="name-card" id="name4"></div>
+      </div>
+
+      <div class="cake-container">
+        <svg class="cake-svg" viewBox="0 0 400 400" id="cake-svg">
+          <circle cx="200" cy="200" r="180" fill="#8B4513" stroke="#654321" stroke-width="4"/>
+          <circle cx="200" cy="200" r="170" fill="#D2691E" />
+          <circle cx="200" cy="200" r="160" fill="#F4A460" />
+          <!-- Slices will be drawn here -->
+          <g id="slices-group"></g>
+          <!-- Center point -->
+          <circle cx="200" cy="200" r="5" fill="#654321"/>
+        </svg>
+      </div>
+
+      <div class="cake-info">
+        <p>Press the button to see different ways to slice the cake!</p>
+      </div>
+
+      <div class="controls">
+        <button id="slice-button">Show New Slicing Outcome</button>
+      </div>
+
+      <div class="slice-sizes" id="slice-sizes"></div>
+    </div>
+
+  </div>
+
+  <script>
+    // Marshmallow Experiment
+    const marshmallowExp = document.getElementById('marshmallow-experiment');
+    const cakeExp = document.getElementById('cake-experiment');
+    const radioButtons = document.querySelectorAll('input[name="experiment"]');
+    
+    radioButtons.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        if (e.target.value === 'marshmallow') {
+          marshmallowExp.classList.add('active');
+          cakeExp.classList.remove('active');
+        } else {
+          marshmallowExp.classList.remove('active');
+          cakeExp.classList.add('active');
+        }
+      });
+    });
+
+    // Random profile data
+    const firstNames = ['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank', 'Grace', 'Henry', 'Iris', 'Jack', 'Kate', 'Leo', 'Maya', 'Noah', 'Olivia', 'Peter', 'Quinn', 'Rose', 'Sam', 'Tina'];
+    const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Wilson', 'Anderson', 'Taylor', 'Thomas', 'Moore'];
+    const occupations = ['Teacher', 'Engineer', 'Artist', 'Chef', 'Doctor', 'Writer', 'Musician', 'Scientist', 'Designer', 'Programmer', 'Nurse', 'Architect', 'Photographer', 'Lawyer', 'Accountant'];
+    const personalities = ['Patient', 'Impulsive', 'Thoughtful', 'Spontaneous', 'Careful', 'Adventurous', 'Cautious', 'Bold', 'Reserved', 'Outgoing', 'Analytical', 'Creative', 'Practical', 'Dreamer'];
+    const colors = ['Blue', 'Red', 'Green', 'Yellow', 'Purple', 'Orange', 'Pink', 'Teal', 'Indigo', 'Coral'];
+    const hobbies = ['Reading', 'Gaming', 'Cooking', 'Hiking', 'Painting', 'Photography', 'Gardening', 'Cycling', 'Yoga', 'Music', 'Dancing', 'Writing', 'Fishing', 'Traveling'];
+
+    function randomChoice(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function generateProfile() {
+      document.getElementById('profile-name').textContent = `${randomChoice(firstNames)} ${randomChoice(lastNames)}`;
+      document.getElementById('profile-age').textContent = Math.floor(Math.random() * 50) + 18;
+      document.getElementById('profile-occupation').textContent = randomChoice(occupations);
+      document.getElementById('profile-personality').textContent = randomChoice(personalities);
+      document.getElementById('profile-color').textContent = randomChoice(colors);
+      document.getElementById('profile-hobby').textContent = randomChoice(hobbies);
+    }
+
+    // Clock setup
+    function setupClockNumbers() {
+      const numbersContainer = document.getElementById('clock-numbers');
+      for (let i = 1; i <= 12; i++) {
+        const angle = (i * 30 - 90) * (Math.PI / 180);
+        const x = 150 + 120 * Math.cos(angle);
+        const y = 150 + 120 * Math.sin(angle);
+        const numberDiv = document.createElement('div');
+        numberDiv.className = 'clock-number';
+        numberDiv.textContent = i;
+        numberDiv.style.left = `${x - 15}px`;
+        numberDiv.style.top = `${y - 15}px`;
+        numbersContainer.appendChild(numberDiv);
+      }
+    }
+
+    let experimentTime = 0; // in seconds (represents minutes)
+    let experimentDuration = 10 * 60; // 10 minutes = 600 seconds
+    let timerInterval = null;
+    let isWaiting = false;
+
+    function updateClock() {
+      const remainingSeconds = experimentDuration - experimentTime;
+      const minutes = Math.floor(remainingSeconds / 60);
+      const seconds = remainingSeconds % 60;
+      document.getElementById('timer-display').textContent = 
+        `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+      // Update clock hands
+      const hourHand = document.getElementById('hour-hand');
+      const minuteHand = document.getElementById('minute-hand');
+      
+      // Map seconds to clock position (60 seconds = full rotation)
+      const minuteAngle = (experimentTime % 60) * 6; // 6 degrees per second
+      const hourAngle = (experimentTime / 60) * 30; // 30 degrees per minute
+      
+      minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
+      hourHand.style.transform = `rotate(${hourAngle}deg)`;
+    }
+
+    function startExperiment() {
+      experimentTime = 0;
+      isWaiting = true;
+      updateClock();
+      
+      timerInterval = setInterval(() => {
+        experimentTime++;
+        updateClock();
+        
+        if (experimentTime >= experimentDuration) {
+          clearInterval(timerInterval);
+          endExperiment(true);
+        }
+      }, 1000);
+    }
+
+    function endExperiment(success) {
+      clearInterval(timerInterval);
+      isWaiting = false;
+      
+      document.getElementById('eat-button').disabled = true;
+      document.getElementById('wait-button').disabled = true;
+      document.getElementById('reset-marshmallow').style.display = 'inline-block';
+      
+      const marshmallowDisplay = document.getElementById('marshmallow-display');
+      
+      if (success) {
+        marshmallowDisplay.innerHTML = '🎉 Success! You waited the full 10 minutes!<br>You earned a whole pack of marshmallows!<br>🍥🍥🍥🍥🍥';
+        marshmallowDisplay.style.fontSize = '1.5em';
+        marshmallowDisplay.style.color = '#2e7d32';
+      } else {
+        marshmallowDisplay.innerHTML = '🍥 You ate the marshmallow!<br>Instant gratification, but no bonus pack.';
+        marshmallowDisplay.style.fontSize = '1.5em';
+        marshmallowDisplay.style.color = '#c62828';
+      }
+    }
+
+    document.getElementById('eat-button').addEventListener('click', () => {
+      if (isWaiting) {
+        endExperiment(false);
+      }
+    });
+
+    document.getElementById('wait-button').addEventListener('click', () => {
+      if (!isWaiting) {
+        document.getElementById('wait-button').disabled = true;
+        startExperiment();
+      }
+    });
+
+    document.getElementById('reset-marshmallow').addEventListener('click', () => {
+      experimentTime = 0;
+      isWaiting = false;
+      clearInterval(timerInterval);
+      
+      document.getElementById('eat-button').disabled = false;
+      document.getElementById('wait-button').disabled = false;
+      document.getElementById('reset-marshmallow').style.display = 'none';
+      
+      const marshmallowDisplay = document.getElementById('marshmallow-display');
+      marshmallowDisplay.innerHTML = '🍥';
+      marshmallowDisplay.style.fontSize = '4em';
+      marshmallowDisplay.style.color = '';
+      
+      updateClock();
+      generateProfile();
+    });
+
+    // Slice of Cake Experiment
+    const cakeNames = ['Alice', 'Bob', 'Carol', 'Dave', 'Emma', 'Frank', 'Grace', 'Henry'];
+    
+    // Box-Muller transform for normal distribution
+    function randomNormal(mean, stdDev) {
+      // Use Number.MIN_VALUE to avoid zero which would cause log(0) = -Infinity
+      let u1 = Math.random() || Number.MIN_VALUE;
+      let u2 = Math.random() || Number.MIN_VALUE;
+      let z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+      return z0 * stdDev + mean;
+    }
+    
+    function setupCakeExperiment() {
+      const selectedNames = [];
+      const tempNames = [...cakeNames];
+      for (let i = 0; i < 4; i++) {
+        const idx = Math.floor(Math.random() * tempNames.length);
+        selectedNames.push(tempNames[idx]);
+        tempNames.splice(idx, 1);
+      }
+      
+      document.getElementById('name1').textContent = selectedNames[0];
+      document.getElementById('name2').textContent = selectedNames[1];
+      document.getElementById('name3').textContent = selectedNames[2];
+      document.getElementById('name4').textContent = selectedNames[3];
+      
+      return selectedNames;
+    }
+
+    function drawCakeSlices() {
+      const slicesGroup = document.getElementById('slices-group');
+      slicesGroup.innerHTML = '';
+      
+      // Generate slice sizes using normal distribution
+      // Mean: 90 degrees (equal slices), Standard deviation: 25 degrees for variety
+      let angles = [];
+      const mean = 90; // 360/4 = 90 degrees per person for equal distribution
+      const stdDev = 25; // standard deviation for variation
+      
+      // Generate 4 angles using normal distribution
+      for (let i = 0; i < 4; i++) {
+        let angle = randomNormal(mean, stdDev);
+        // Clamp to reasonable range (minimum 20 degrees, maximum 180 degrees)
+        angle = Math.max(20, Math.min(180, angle));
+        angles.push(angle);
+      }
+      
+      // Normalize so they sum to 360
+      const sum = angles.reduce((a, b) => a + b, 0);
+      angles = angles.map(a => (a / sum) * 360);
+      
+      // Draw slices
+      const colors = ['#FFB6C1', '#87CEEB', '#98FB98', '#FFD700'];
+      let currentAngle = 0;
+      const cx = 200;
+      const cy = 200;
+      const radius = 160;
+      
+      const names = [
+        document.getElementById('name1').textContent,
+        document.getElementById('name2').textContent,
+        document.getElementById('name3').textContent,
+        document.getElementById('name4').textContent
+      ];
+      
+      angles.forEach((angle, index) => {
+        const startAngle = currentAngle - 90; // -90 to start from top
+        const endAngle = startAngle + angle;
+        
+        const startRad = startAngle * Math.PI / 180;
+        const endRad = endAngle * Math.PI / 180;
+        
+        const x1 = cx + radius * Math.cos(startRad);
+        const y1 = cy + radius * Math.sin(startRad);
+        const x2 = cx + radius * Math.cos(endRad);
+        const y2 = cy + radius * Math.sin(endRad);
+        
+        const largeArc = angle > 180 ? 1 : 0;
+        
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const d = `M ${cx} ${cy} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+        path.setAttribute('d', d);
+        path.setAttribute('fill', colors[index]);
+        path.setAttribute('stroke', '#654321');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('opacity', '0.7');
+        
+        slicesGroup.appendChild(path);
+        
+        currentAngle += angle;
+      });
+      
+      // Display slice sizes
+      const sliceSizesDiv = document.getElementById('slice-sizes');
+      sliceSizesDiv.innerHTML = '';
+      
+      angles.forEach((angle, index) => {
+        const percentage = (angle / 360 * 100).toFixed(1);
+        const sizeDiv = document.createElement('div');
+        sizeDiv.className = 'slice-size';
+        sizeDiv.innerHTML = `<strong>${names[index]}:</strong><br>${percentage}% (${angle.toFixed(1)}°)`;
+        sliceSizesDiv.appendChild(sizeDiv);
+      });
+    }
+
+    document.getElementById('slice-button').addEventListener('click', () => {
+      drawCakeSlices();
+    });
+
+    // Initialize
+    generateProfile();
+    setupClockNumbers();
+    updateClock();
+    setupCakeExperiment();
+    drawCakeSlices();
+  </script>
+</body>
+</html>
