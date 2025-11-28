@@ -53,7 +53,7 @@
   canvas{width:100%;height:auto;border-radius:8px;background:#ffffff;border:1px solid var(--border)}
   .info{font-size:13px;color:var(--muted);margin-top:8px}
   .formula{background:rgb(255, 251, 246);padding:12px;border-radius:8px;font-family:monospace;color:var(--muted);white-space:pre-wrap;border:1px solid var(--border)}
-  .pixel-details{margin-top:10px;background:rgb(255, 251, 246);padding:10px;border-radius:8px;font-size:13px;border:1px solid var(--border)}
+  .pixel-details{margin-top:10px;background:rgb(255, 251, 246);color:#000000;padding:10px;border-radius:8px;font-size:13px;border:1px solid var(--border)}
   footer{grid-column:1/-1;margin-top:14px;color:var(--muted);font-size:13px;text-align:center}
   .small{font-size:12px;color:var(--muted)}
   .param-row{display:flex;gap:8px;align-items:center}
@@ -120,8 +120,8 @@
         <div>
           <label for="pixelCoord">Pixel coordinate to inspect (x,y)</label>
           <div class="row">
-            <input id="pxX" type="number" value="10" min="0" style="width:66px">
-            <input id="pxY" type="number" value="10" min="0" style="width:66px">
+            <input id="pxX" type="number" value="240" min="0" style="width:66px">
+            <input id="pxY" type="number" value="240" min="0" style="width:66px">
             <button id="inspectBtn">Inspect Pixel</button>
           </div>
           <div class="hint">Choose a pixel to see the numeric RGB/HSL calculation for the selected filter.</div>
@@ -838,7 +838,7 @@ inspectBtn.addEventListener('click', ()=>{
     html += 'Filter not recognized for inspection.';
   }
 
-  pixelDetails.innerHTML = '<pre style="white-space:pre-wrap;color:#dff3ff;font-family:monospace;font-size:13px;padding:0;margin:0;background:transparent;border:0">' + html + '</pre>';
+  pixelDetails.innerHTML = '<pre style="white-space:pre-wrap;color:#000000;font-family:monospace;font-size:13px;padding:0;margin:0;background:transparent;border:0">' + html + '</pre>';
 });
 
 // Download handler: attempt to produce a full-size filtered PNG
