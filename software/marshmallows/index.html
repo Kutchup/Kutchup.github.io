@@ -250,6 +250,48 @@
       border: 1px solid var(--border);
       text-align: center;
     }
+    /* Sandcastle Minigame Styles */
+    .sandcastle-display {
+      text-align: center;
+      margin: 25px 0;
+      font-size: 3em;
+      transition: transform 0.2s;
+    }
+    .sandcastle-actions {
+      text-align: center;
+      margin: 25px 0;
+    }
+    .sand-timer {
+      text-align: center;
+      font-size: 1.25em;
+      color: var(--blue);
+      margin-bottom: 16px;
+    }
+    .sandcastle-status {
+      text-align: center;
+      font-size: 1.3em;
+      margin: 20px 0;
+      font-weight: bold;
+    }
+    .squished {
+      color: var(--red);
+      font-size: 1.8em;
+    }
+    .washed {
+      color: #1E90FF;
+      font-size: 1.8em;
+    }
+    .sandcastle-profiles {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 14px;
+      margin: 0 auto 18px auto;
+      max-width: 460px;
+    }
+    .profile-card.sandcastle-profile {
+      border: 2px dashed var(--border);
+      margin-top: 0;
+    }
   </style>
 </head>
 <body>
@@ -265,6 +307,10 @@
       <label>
         <input type="radio" name="experiment" value="cake">
         Slice of Cake
+      </label>
+      <label>
+        <input type="radio" name="experiment" value="sandcastle">
+        Sandcastles
       </label>
     </div>
 
@@ -336,12 +382,51 @@
       <div class="slice-sizes" id="slice-sizes"></div>
     </div>
 
+    <!-- Sandcastles Minigame -->
+    <div id="sandcastle-experiment" class="experiment">
+      <h3 style="text-align:center;">Sandcastles</h3>
+      <div class="sandcastle-profiles">
+        <div class="profile-card sandcastle-profile">
+          <h4>Builder Profile</h4>
+          <div class="profile-info">
+            <div><strong>Name:</strong> <span id="builder-name"></span></div>
+            <div><strong>Age:</strong> <span id="builder-age"></span></div>
+            <div><strong>Occupation:</strong> <span id="builder-occupation"></span></div>
+            <div><strong>Personality:</strong> <span id="builder-personality"></span></div>
+            <div><strong>Favorite Color:</strong> <span id="builder-color"></span></div>
+            <div><strong>Hobby:</strong> <span id="builder-hobby"></span></div>
+          </div>
+        </div>
+        <div class="profile-card sandcastle-profile">
+          <h4>Squisher Profile</h4>
+          <div class="profile-info">
+            <div><strong>Name:</strong> <span id="squisher-name"></span></div>
+            <div><strong>Age:</strong> <span id="squisher-age"></span></div>
+            <div><strong>Occupation:</strong> <span id="squisher-occupation"></span></div>
+            <div><strong>Personality:</strong> <span id="squisher-personality"></span></div>
+            <div><strong>Favorite Color:</strong> <span id="squisher-color"></span></div>
+            <div><strong>Hobby:</strong> <span id="squisher-hobby"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="sand-timer" id="sandcastle-timer">
+        Time until the tide: <span id="sandcastle-time-display">00:20</span>
+      </div>
+      <div class="sandcastle-display" id="sandcastle-display">🏖️ <br> A beautiful sandcastle sits on the shore.</div>
+      <div class="sandcastle-actions">
+        <button id="sandcastle-squish-btn">Squish!</button>
+        <button id="sandcastle-reset-btn" style="display:none;">New Sandcastle</button>
+      </div>
+      <div class="sandcastle-status" id="sandcastle-status"></div>
+    </div>
+
   </div>
 
   <script>
     // Marshmallow Experiment
     const marshmallowExp = document.getElementById('marshmallow-experiment');
     const cakeExp = document.getElementById('cake-experiment');
+    const sandcastleExp = document.getElementById('sandcastle-experiment');
     const radioButtons = document.querySelectorAll('input[name="experiment"]');
     
     radioButtons.forEach(radio => {
@@ -349,9 +434,15 @@
         if (e.target.value === 'marshmallow') {
           marshmallowExp.classList.add('active');
           cakeExp.classList.remove('active');
-        } else {
+          sandcastleExp.classList.remove('active');
+        } else if (e.target.value === 'cake') {
           marshmallowExp.classList.remove('active');
           cakeExp.classList.add('active');
+          sandcastleExp.classList.remove('active');
+        } else if (e.target.value === 'sandcastle') {
+          marshmallowExp.classList.remove('active');
+          cakeExp.classList.remove('active');
+          sandcastleExp.classList.add('active');
         }
       });
     });
@@ -375,6 +466,24 @@
       document.getElementById('profile-personality').textContent = randomChoice(personalities);
       document.getElementById('profile-color').textContent = randomChoice(colors);
       document.getElementById('profile-hobby').textContent = randomChoice(hobbies);
+    }
+
+    // Sandcastles profiles
+    function generateSandcastleProfiles() {
+      // Just reused same generators as Marshmallows
+      document.getElementById('builder-name').textContent = `${randomChoice(firstNames)} ${randomChoice(lastNames)}`;
+      document.getElementById('builder-age').textContent = Math.floor(Math.random() * 50) + 18;
+      document.getElementById('builder-occupation').textContent = randomChoice(occupations);
+      document.getElementById('builder-personality').textContent = randomChoice(personalities);
+      document.getElementById('builder-color').textContent = randomChoice(colors);
+      document.getElementById('builder-hobby').textContent = randomChoice(hobbies);
+
+      document.getElementById('squisher-name').textContent = `${randomChoice(firstNames)} ${randomChoice(lastNames)}`;
+      document.getElementById('squisher-age').textContent = Math.floor(Math.random() * 50) + 18;
+      document.getElementById('squisher-occupation').textContent = randomChoice(occupations);
+      document.getElementById('squisher-personality').textContent = randomChoice(personalities);
+      document.getElementById('squisher-color').textContent = randomChoice(colors);
+      document.getElementById('squisher-hobby').textContent = randomChoice(hobbies);
     }
 
     // Clock setup
@@ -594,12 +703,109 @@
       drawCakeSlices();
     });
 
+    // Sandcastles Minigame
+    let sandcastleTideTimer = null;
+    let sandcastleTideDuration = 20; // seconds until tide washes away
+    let sandcastleTideLeft = sandcastleTideDuration;
+    let sandcastleState = "built"; // "built" | "squished" | "washed"
+
+    // Random sandcastle names
+    const sandcastleNames = [
+      "Royal Tower", "Awesome Fort", "Tide Temple", "Crab Kingdom", "Sandy Star", "Dream Dome", "Pirate Citadel",
+      "Wave Watch", "Moon Nest", "Sun Palace", "Mermaid Mansion", "Seashell Keep", "Beach Bastion"
+    ];
+
+    function randomSandcastleArt(name) {
+      // Optionally random emoji + name for visual flavor
+      const emojis = ["🏖️", "🏰", "🦀", "🦑", "🐚", "🌊", "⭐"];
+      const emoji = randomChoice(emojis);
+      return `${emoji} <br><strong>${name}</strong><br>A beautiful sandcastle sits on the shore.`;
+    }
+
+    function renderSandcastleState() {
+      const display = document.getElementById('sandcastle-display');
+      const status = document.getElementById('sandcastle-status');
+      if (sandcastleState === "built") {
+        display.innerHTML = randomSandcastleArt(document.getElementById('sandcastle-display').getAttribute('data-castlename') || "Sandcastle");
+        status.textContent = "";
+        display.style.transform = "";
+      } else if (sandcastleState === "squished") {
+        display.innerHTML = "💥<br>Squished! The sandcastle is destroyed.";
+        status.innerHTML = "<span class='squished'>Squished by the Squisher! 🥲</span>";
+        display.style.transform = "scale(0.7) rotate(-10deg)";
+      } else if (sandcastleState === "washed") {
+        display.innerHTML = "🌊<br>The tide washed away the sandcastle.";
+        status.innerHTML = "<span class='washed'>The sea took it away! 🌊</span>";
+        display.style.transform = "scale(0.7) rotate(9deg)";
+      }
+    }
+
+    function updateSandcastleTimerDisplay() {
+      const display = document.getElementById('sandcastle-time-display');
+      display.textContent = `00:${sandcastleTideLeft.toString().padStart(2, '0')}`;
+    }
+
+    function sandcastleTideTick() {
+      sandcastleTideLeft -= 1;
+      updateSandcastleTimerDisplay();
+      if (sandcastleTideLeft <= 0 && sandcastleState === "built") {
+        sandcastleState = "washed";
+        killSandcastleTideTimer();
+        finishSandcastleGame();
+      }
+    }
+
+    function startSandcastleTideTimer() {
+      killSandcastleTideTimer();
+      sandcastleTideTimer = setInterval(sandcastleTideTick, 1000);
+    }
+    function killSandcastleTideTimer() {
+      if (sandcastleTideTimer) {
+        clearInterval(sandcastleTideTimer);
+        sandcastleTideTimer = null;
+      }
+    }
+
+    function finishSandcastleGame() {
+      document.getElementById('sandcastle-squish-btn').disabled = true;
+      document.getElementById('sandcastle-reset-btn').style.display = "inline-block";
+      renderSandcastleState();
+    }
+
+    document.getElementById('sandcastle-squish-btn').addEventListener('click', () => {
+      if (sandcastleState === "built") {
+        sandcastleState = "squished";
+        killSandcastleTideTimer();
+        finishSandcastleGame();
+      }
+    });
+
+    document.getElementById('sandcastle-reset-btn').addEventListener('click', () => {
+      sandcastleSetup();
+    });
+
+    function sandcastleSetup() {
+      sandcastleState = "built";
+      sandcastleTideLeft = sandcastleTideDuration;
+      document.getElementById('sandcastle-squish-btn').disabled = false;
+      document.getElementById('sandcastle-reset-btn').style.display = "none";
+      // Generate two profiles
+      generateSandcastleProfiles();
+      // Random sandcastle
+      const sandcastleName = randomChoice(sandcastleNames);
+      document.getElementById('sandcastle-display').setAttribute('data-castlename', sandcastleName);
+      updateSandcastleTimerDisplay();
+      renderSandcastleState();
+      startSandcastleTideTimer();
+    }
+
     // Initialize
     generateProfile();
     setupClockNumbers();
     updateClock();
     setupCakeExperiment();
     drawCakeSlices();
+    sandcastleSetup();
   </script>
 </body>
 </html>
