@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>3D Shape Point Cloud Viewer</title>
+    <link rel="icon" href="/favicon.ico">
     <style>
       :root {
         --bg: rgb(255, 231, 206);
@@ -24,6 +25,20 @@
         background: var(--bg);
         color: var(--muted);
         font-family: "Lucida Sans Unicode", "Trebuchet MS";
+      }
+
+      .back-link {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        color: rgb(97, 97, 255);
+        text-decoration: none;
+        font-size: 1.1em;
+      }
+
+      .back-link:hover {
+        cursor: help;
+        text-decoration: underline;
       }
 
       main {
@@ -128,6 +143,7 @@
     </style>
   </head>
   <body>
+    <a href="/software/" class="back-link">← Back to Software</a>
     <main>
       <h1>3D Shape Point Cloud Viewer</h1>
       <p>
@@ -219,7 +235,6 @@
         </p>
       </section>
 
-      <p><a href="../index.html">Back to Webapps Hub</a></p>
     </main>
 
     <script>
