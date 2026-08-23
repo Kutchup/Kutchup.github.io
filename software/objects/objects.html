@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Shape Point Cloud Viewer</title>
+    <style>
+      :root {
+        --bg: rgb(255, 231, 206);
+        --panel: rgb(255, 241, 216);
+        --muted: rgb(38, 38, 38);
+        --border: rgb(255, 207, 166);
+        --accent: rgb(255, 97, 97);
+        --link: rgb(97, 97, 255);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 1rem;
+        background: var(--bg);
+        color: var(--muted);
+        font-family: "Lucida Sans Unicode", "Trebuchet MS";
+      }
+
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        display: grid;
+        gap: 1rem;
+      }
+
+      h1,
+      h2 {
+        color: var(--accent);
+        margin: 0;
+      }
+
+      a {
+        color: var(--link);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+        gap: 1rem;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 0.9rem;
+      }
+
+      .controls {
+        display: grid;
+        gap: 0.85rem;
+        align-content: start;
+      }
+
+      .control {
+        display: grid;
+        gap: 0.35rem;
+      }
+
+      .control-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      .shape-setting[hidden] {
+        display: none;
+      }
+
+      input[type="range"] {
+        width: 100%;
+      }
+
+      input[type="number"],
+      select,
+      button,
+      input[type="color"] {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: #fff7ed;
+        border-radius: 0.45rem;
+        padding: 0.45rem 0.6rem;
+      }
+
+      .viewport {
+        position: relative;
+        min-height: 60vh;
+        overflow: hidden;
+      }
+
+      #canvas-holder {
+        width: 100%;
+        height: 100%;
+        min-height: 60vh;
+        border-radius: 0.65rem;
+        overflow: hidden;
+        background: #090909;
+      }
+
+      .hint {
+        margin: 0;
+        font-size: 0.92rem;
+      }
+
+      .explain p {
+        margin: 0.45rem 0 0;
+      }
+
+      @media (max-width: 920px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>3D Shape Point Cloud Viewer</h1>
+      <p>
+        Drag to rotate, scroll to zoom, and right-drag to pan. Explore Fibonacci spheres, spherical harmonics, and other procedural 3D point-cloud shapes.
+      </p>
+
+      <section class="layout">
+        <aside class="panel controls" aria-label="viewer settings">
+          <h2>Settings</h2>
+          <label class="control">
+            <span>Shape</span>
+            <select id="shape">
+              <option value="fibonacci">Fibonacci sphere</option>
+              <option value="harmonic">Spherical harmonics</option>
+              <option value="torus">Torus</option>
+              <option value="shell">Wave shell</option>
+              <option value="mobius">Möbius strip</option>
+            </select>
+          </label>
+          <label class="control shape-setting" data-shapes="shell,mobius" id="wavelength-control" hidden>
+            <span>Wavelength: <strong id="wavelength-value">1.2</strong></span>
+            <input id="wavelength" type="range" min="0.2" max="3" step="0.05" value="1.2" />
+          </label>
+          <label class="control shape-setting" data-shapes="harmonic" id="harmonic-l-control" hidden>
+            <span>Harmonic l: <strong id="harmonic-l-value">3</strong></span>
+            <input id="harmonic-l" type="range" min="1" max="8" step="1" value="3" />
+          </label>
+          <label class="control shape-setting" data-shapes="harmonic" id="harmonic-m-control" hidden>
+            <span>Harmonic m: <strong id="harmonic-m-value">2</strong></span>
+            <input id="harmonic-m" type="range" min="-8" max="8" step="1" value="2" />
+          </label>
+          <label class="control">
+            <span>Point count: <strong id="count-value">800</strong></span>
+            <input id="count" type="range" min="50" max="5000" step="10" value="800" />
+          </label>
+          <label class="control">
+            <span>Shape radius: <strong id="radius-value">2.50</strong></span>
+            <input id="radius" type="range" min="0.5" max="6" step="0.1" value="2.5" />
+          </label>
+          <label class="control">
+            <span>Point size: <strong id="size-value">0.04</strong></span>
+            <input id="size" type="range" min="0.01" max="0.14" step="0.005" value="0.04" />
+          </label>
+          <label class="control">
+            <span>Point color</span>
+            <input id="color" type="color" value="#73d9ff" />
+          </label>
+          <label class="control">
+            <span>Projection</span>
+            <select id="projection">
+              <option value="perspective">Perspective</option>
+              <option value="orthographic">Orthographic</option>
+            </select>
+          </label>
+          <label class="control-row">
+            <input id="auto-rotate" type="checkbox" />
+            <span>Auto rotate</span>
+          </label>
+          <label class="control">
+            <span>Auto speed: <strong id="auto-speed-value">1.2</strong></span>
+            <input id="auto-speed" type="range" min="0" max="6" step="0.1" value="1.2" />
+          </label>
+          <label class="control-row">
+            <input id="axes" type="checkbox" checked />
+            <span>Show axes</span>
+          </label>
+          <label class="control-row">
+            <input id="grid" type="checkbox" checked />
+            <span>Show grid</span>
+          </label>
+          <button id="reset-view" type="button">Reset view</button>
+        </aside>
+
+        <section class="panel viewport">
+          <div id="canvas-holder" role="img" aria-label="Interactive 3D point-cloud viewer"></div>
+          <p class="hint">Tip: left-drag rotates, wheel zooms, right-drag pans.</p>
+        </section>
+      </section>
+
+      <section class="panel explain">
+        <h2>How these 3D shapes are generated</h2>
+        <p>
+          The Fibonacci sphere uses the golden angle (about 137.5°) to spread points evenly across the surface without clumping.
+          Spherical harmonics reshape that sphere by modulating radius with angular sine/cosine terms to form lobed patterns.
+        </p>
+        <p>
+          Torus, shell, and Möbius strip shapes are built from parametric equations, where angles are converted into x/y/z coordinates and then
+          scaled by the radius control so each shape remains centered and interactive with the same camera controls.
+        </p>
+      </section>
+
+      <p><a href="../index.html">Back to Webapps Hub</a></p>
+    </main>
+
+    <script>
+      (function () {
+        const holder = document.getElementById("canvas-holder");
+        const shapeInput = document.getElementById("shape");
+        const shapeSettingControls = Array.from(document.querySelectorAll(".shape-setting"));
+        const wavelengthInput = document.getElementById("wavelength");
+        const harmonicLInput = document.getElementById("harmonic-l");
+        const harmonicMInput = document.getElementById("harmonic-m");
+        const countInput = document.getElementById("count");
+        const radiusInput = document.getElementById("radius");
+        const sizeInput = document.getElementById("size");
+        const colorInput = document.getElementById("color");
+        const projectionInput = document.getElementById("projection");
+        const autoRotateInput = document.getElementById("auto-rotate");
+        const autoSpeedInput = document.getElementById("auto-speed");
+        const axesInput = document.getElementById("axes");
+        const gridInput = document.getElementById("grid");
+        const resetViewButton = document.getElementById("reset-view");
+
+        const countValue = document.getElementById("count-value");
+        const radiusValue = document.getElementById("radius-value");
+        const sizeValue = document.getElementById("size-value");
+        const wavelengthValue = document.getElementById("wavelength-value");
+        const harmonicLValue = document.getElementById("harmonic-l-value");
+        const harmonicMValue = document.getElementById("harmonic-m-value");
+        const autoSpeedValue = document.getElementById("auto-speed-value");
+        const canvas = document.createElement("canvas");
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        canvas.style.display = "block";
+        holder.appendChild(canvas);
+        const ctx = canvas.getContext("2d");
+
+        let width = 0;
+        let height = 0;
+        let pixelRatio = 1;
+        let points = [];
+
+        const camera = {
+          yaw: 0.75,
+          pitch: 0.45,
+          distance: 8,
+          target: { x: 0, y: 0, z: 0 },
+          minDistance: 2,
+          maxDistance: 28
+        };
+
+        const state = {
+          projection: "perspective",
+          autoRotate: false,
+          autoSpeed: 1.2,
+          showAxes: true,
+          showGrid: true,
+          dragging: false,
+          dragMode: null,
+          lastX: 0,
+          lastY: 0
+        };
+
+        function clamp(value, min, max) {
+          return Math.max(min, Math.min(max, value));
+        }
+
+        function vecSub(a, b) {
+          return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z };
+        }
+
+        function vecAdd(a, b) {
+          return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z };
+        }
+
+        function vecScale(v, s) {
+          return { x: v.x * s, y: v.y * s, z: v.z * s };
+        }
+
+        function dot(a, b) {
+          return a.x * b.x + a.y * b.y + a.z * b.z;
+        }
+
+        function cross(a, b) {
+          return {
+            x: a.y * b.z - a.z * b.y,
+            y: a.z * b.x - a.x * b.z,
+            z: a.x * b.y - a.y * b.x
+          };
+        }
+
+        function normalize(v) {
+          const len = Math.hypot(v.x, v.y, v.z) || 1;
+          return { x: v.x / len, y: v.y / len, z: v.z / len };
+        }
+
+        function getCameraBasis() {
+          const cosPitch = Math.cos(camera.pitch);
+          const sinPitch = Math.sin(camera.pitch);
+          const cosYaw = Math.cos(camera.yaw);
+          const sinYaw = Math.sin(camera.yaw);
+          const position = {
+            x: camera.target.x + camera.distance * cosPitch * sinYaw,
+            y: camera.target.y + camera.distance * sinPitch,
+            z: camera.target.z + camera.distance * cosPitch * cosYaw
+          };
+
+          const forward = normalize(vecSub(camera.target, position));
+          let right = cross(forward, { x: 0, y: 1, z: 0 });
+          if (Math.hypot(right.x, right.y, right.z) < 0.0001) {
+            right = { x: 1, y: 0, z: 0 };
+          }
+          right = normalize(right);
+          const up = normalize(cross(right, forward));
+
+          return { position, forward, right, up };
+        }
+
+        function project(worldPoint, basis) {
+          const rel = vecSub(worldPoint, basis.position);
+          const xCam = dot(rel, basis.right);
+          const yCam = dot(rel, basis.up);
+          const zCam = dot(rel, basis.forward);
+
+          if (state.projection === "perspective") {
+            if (zCam <= 0.05) {
+              return null;
+            }
+            const focal = 0.9 * Math.min(width, height);
+            return {
+              x: width * 0.5 + (xCam * focal) / zCam,
+              y: height * 0.5 - (yCam * focal) / zCam,
+              depth: zCam
+            };
+          }
+
+          const orthoScale = Math.min(width, height) / 7;
+          return {
+            x: width * 0.5 + xCam * orthoScale,
+            y: height * 0.5 - yCam * orthoScale,
+            depth: zCam
+          };
+        }
+
+        function generateFibonacciSphere(count, radius) {
+          const positions = new Array(count);
+          const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+          const denominator = count > 1 ? count - 1 : 1;
+          for (let i = 0; i < count; i++) {
+            const y = 1 - (i / denominator) * 2;
+            const radial = Math.sqrt(Math.max(0, 1 - y * y));
+            const theta = goldenAngle * i;
+            const x = Math.cos(theta) * radial;
+            const z = Math.sin(theta) * radial;
+            positions[i] = { x: x * radius, y: y * radius, z: z * radius };
+          }
+          return positions;
+        }
+
+        function generateSphericalHarmonics(count, radius, harmonicL, harmonicM) {
+          const positions = new Array(count);
+          const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+          const denominator = count > 1 ? count - 1 : 1;
+          for (let i = 0; i < count; i++) {
+            const t = i / denominator;
+            const phi = Math.acos(1 - 2 * t);
+            const theta = goldenAngle * i;
+            const radialMod =
+              1 +
+              0.42 * Math.sin(harmonicL * phi) * Math.cos(harmonicM * theta) +
+              0.22 * Math.cos((harmonicL + Math.abs(harmonicM)) * 0.5 * phi);
+            const shellRadius = radius * Math.max(0.22, radialMod);
+            const sinPhi = Math.sin(phi);
+            positions[i] = {
+              x: shellRadius * sinPhi * Math.cos(theta),
+              y: shellRadius * Math.cos(phi),
+              z: shellRadius * sinPhi * Math.sin(theta)
+            };
+          }
+          return positions;
+        }
+
+        function generateTorus(count, radius) {
+          const positions = new Array(count);
+          const majorRadius = radius * 0.72;
+          const minorRadius = radius * 0.33;
+          for (let i = 0; i < count; i++) {
+            const u = (i / count) * Math.PI * 2;
+            const v = ((i * 7) % count) / count * Math.PI * 2;
+            const ring = majorRadius + minorRadius * Math.cos(v);
+            positions[i] = {
+              x: ring * Math.cos(u),
+              y: minorRadius * Math.sin(v),
+              z: ring * Math.sin(u)
+            };
+          }
+          return positions;
+        }
+
+        function generateWaveShell(count, radius, wavelength) {
+          const positions = new Array(count);
+          const turns = 5.5;
+          const denominator = count > 1 ? count - 1 : 1;
+          for (let i = 0; i < count; i++) {
+            const t = i / denominator;
+            const angle = t * Math.PI * 2 * turns;
+            const spiralRadius = radius * (0.18 + 0.82 * t);
+            const wave = 0.28 * Math.sin((9 / wavelength) * angle);
+            positions[i] = {
+              x: (spiralRadius + radius * wave * 0.35) * Math.cos(angle),
+              y: radius * (t * 2 - 1) * 0.95,
+              z: (spiralRadius + radius * wave * 0.35) * Math.sin(angle)
+            };
+          }
+          return positions;
+        }
+
+        function generateMobiusStrip(count, radius, wavelength) {
+          const positions = new Array(count);
+          const majorRadius = radius * 0.8;
+          const width = radius * 0.44;
+          const vScale = (2 * Math.PI) / wavelength;
+          for (let i = 0; i < count; i++) {
+            const t = i / count;
+            const u = t * Math.PI * 2;
+            const v = Math.sin(u * vScale) * width;
+            const halfU = u * 0.5;
+            positions[i] = {
+              x: (majorRadius + v * Math.cos(halfU)) * Math.cos(u),
+              y: v * Math.sin(halfU),
+              z: (majorRadius + v * Math.cos(halfU)) * Math.sin(u)
+            };
+          }
+          return positions;
+        }
+
+        function generateShapePoints(shape, count, radius, settings) {
+          if (shape === "harmonic") {
+            return generateSphericalHarmonics(count, radius, settings.harmonicL, settings.harmonicM);
+          }
+          if (shape === "torus") {
+            return generateTorus(count, radius);
+          }
+          if (shape === "shell") {
+            return generateWaveShell(count, radius, settings.wavelength);
+          }
+          if (shape === "mobius") {
+            return generateMobiusStrip(count, radius, settings.wavelength);
+          }
+          return generateFibonacciSphere(count, radius);
+        }
+
+        function updateShapeSpecificControls(shape) {
+          for (let i = 0; i < shapeSettingControls.length; i++) {
+            const control = shapeSettingControls[i];
+            const visibleShapes = (control.dataset.shapes || "").split(",");
+            const shouldShow = visibleShapes.includes(shape);
+            control.hidden = !shouldShow;
+          }
+        }
+
+        function rebuildSphere() {
+          const shape = shapeInput.value;
+          const count = Number(countInput.value);
+          const radius = Number(radiusInput.value);
+          const size = Number(sizeInput.value);
+          const color = colorInput.value;
+          const wavelength = Number(wavelengthInput.value);
+          const harmonicL = Math.max(1, Math.round(Number(harmonicLInput.value)));
+          const harmonicM = clamp(Math.round(Number(harmonicMInput.value)), -harmonicL, harmonicL);
+          const settings = {
+            wavelength,
+            harmonicL,
+            harmonicM
+          };
+
+          countValue.textContent = String(count);
+          radiusValue.textContent = radius.toFixed(2);
+          sizeValue.textContent = size.toFixed(3);
+          wavelengthValue.textContent = wavelength.toFixed(2);
+          harmonicLValue.textContent = String(harmonicL);
+          harmonicMValue.textContent = String(harmonicM);
+          harmonicLInput.value = String(harmonicL);
+          harmonicMInput.value = String(harmonicM);
+          updateShapeSpecificControls(shape);
+          points = generateShapePoints(shape, count, radius, settings);
+          points.color = color;
+          points.size = size;
+        }
+
+        function drawLine3D(a, b, color, basis) {
+          const pa = project(a, basis);
+          const pb = project(b, basis);
+          if (!pa || !pb) {
+            return;
+          }
+          ctx.strokeStyle = color;
+          ctx.beginPath();
+          ctx.moveTo(pa.x, pa.y);
+          ctx.lineTo(pb.x, pb.y);
+          ctx.stroke();
+        }
+
+        function drawAxesAndGrid(basis) {
+          ctx.lineWidth = 1;
+          if (state.showGrid) {
+            const extent = 4;
+            const step = 1;
+            for (let i = -extent; i <= extent; i += step) {
+              drawLine3D({ x: -extent, y: i, z: 0 }, { x: extent, y: i, z: 0 }, "rgba(130,130,130,0.5)", basis);
+              drawLine3D({ x: i, y: -extent, z: 0 }, { x: i, y: extent, z: 0 }, "rgba(130,130,130,0.5)", basis);
+            }
+          }
+          if (state.showAxes) {
+            drawLine3D({ x: 0, y: 0, z: 0 }, { x: 3.2, y: 0, z: 0 }, "#ff7575", basis);
+            drawLine3D({ x: 0, y: 0, z: 0 }, { x: 0, y: 3.2, z: 0 }, "#7eff7e", basis);
+            drawLine3D({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 3.2 }, "#8db6ff", basis);
+          }
+        }
+
+        function drawPoints(basis) {
+          const rendered = [];
+          const baseSize = points.size || 0.04;
+          const color = points.color || "#73d9ff";
+
+          for (let i = 0; i < points.length; i++) {
+            const projection = project(points[i], basis);
+            if (!projection) {
+              continue;
+            }
+            let radiusPx;
+            if (state.projection === "perspective") {
+              radiusPx = clamp((baseSize * 900) / projection.depth, 1, 14);
+            } else {
+              radiusPx = clamp(baseSize * 45, 1, 14);
+            }
+
+            rendered.push({
+              x: projection.x,
+              y: projection.y,
+              z: projection.depth,
+              r: radiusPx
+            });
+          }
+
+          rendered.sort((a, b) => a.z - b.z);
+          for (let i = 0; i < rendered.length; i++) {
+            const p = rendered[i];
+            const alpha = clamp(0.35 + p.r / 8, 0.35, 1);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.globalAlpha = alpha;
+            ctx.fill();
+          }
+          ctx.globalAlpha = 1;
+        }
+
+        function resize() {
+          width = holder.clientWidth;
+          height = holder.clientHeight;
+          pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = Math.max(1, Math.floor(width * pixelRatio));
+          canvas.height = Math.max(1, Math.floor(height * pixelRatio));
+          ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        }
+
+        function resetView() {
+          camera.yaw = 0.75;
+          camera.pitch = 0.45;
+          camera.distance = 8;
+          camera.target = { x: 0, y: 0, z: 0 };
+        }
+
+        shapeInput.addEventListener("change", rebuildSphere);
+        wavelengthInput.addEventListener("input", rebuildSphere);
+        harmonicLInput.addEventListener("input", rebuildSphere);
+        harmonicMInput.addEventListener("input", rebuildSphere);
+        countInput.addEventListener("input", rebuildSphere);
+        radiusInput.addEventListener("input", rebuildSphere);
+        sizeInput.addEventListener("input", rebuildSphere);
+        colorInput.addEventListener("input", rebuildSphere);
+        projectionInput.addEventListener("change", (event) => {
+          state.projection = event.target.value;
+        });
+        autoRotateInput.addEventListener("change", () => {
+          state.autoRotate = autoRotateInput.checked;
+        });
+        autoSpeedInput.addEventListener("input", () => {
+          const speed = Number(autoSpeedInput.value);
+          autoSpeedValue.textContent = speed.toFixed(1);
+          state.autoSpeed = speed;
+        });
+        axesInput.addEventListener("change", () => {
+          state.showAxes = axesInput.checked;
+        });
+        gridInput.addEventListener("change", () => {
+          state.showGrid = gridInput.checked;
+        });
+        resetViewButton.addEventListener("click", resetView);
+        window.addEventListener("resize", resize);
+
+        canvas.addEventListener("contextmenu", (event) => event.preventDefault());
+        canvas.addEventListener("pointerdown", (event) => {
+          state.dragging = true;
+          state.dragMode = event.button === 2 ? "pan" : "rotate";
+          state.lastX = event.clientX;
+          state.lastY = event.clientY;
+          canvas.setPointerCapture(event.pointerId);
+        });
+        canvas.addEventListener("pointermove", (event) => {
+          if (!state.dragging) {
+            return;
+          }
+          const dx = event.clientX - state.lastX;
+          const dy = event.clientY - state.lastY;
+          state.lastX = event.clientX;
+          state.lastY = event.clientY;
+
+          if (state.dragMode === "rotate") {
+            camera.yaw -= dx * 0.0085;
+            camera.pitch = clamp(camera.pitch - dy * 0.0085, -1.45, 1.45);
+          } else {
+            const basis = getCameraBasis();
+            const panScale = (camera.distance * 0.0017);
+            const pan = vecAdd(vecScale(basis.right, -dx * panScale), vecScale(basis.up, dy * panScale));
+            camera.target = vecAdd(camera.target, pan);
+          }
+        });
+        function stopDrag(event) {
+          state.dragging = false;
+          state.dragMode = null;
+          if (event && event.pointerId !== undefined) {
+            canvas.releasePointerCapture(event.pointerId);
+          }
+        }
+        canvas.addEventListener("pointerup", stopDrag);
+        canvas.addEventListener("pointercancel", stopDrag);
+        canvas.addEventListener("wheel", (event) => {
+          event.preventDefault();
+          const factor = Math.exp(event.deltaY * 0.0012);
+          camera.distance = clamp(camera.distance * factor, camera.minDistance, camera.maxDistance);
+        }, { passive: false });
+
+        state.projection = projectionInput.value;
+        state.autoRotate = false;
+        state.autoSpeed = Number(autoSpeedInput.value);
+        state.showAxes = axesInput.checked;
+        state.showGrid = gridInput.checked;
+        rebuildSphere();
+        resize();
+
+        function render() {
+          requestAnimationFrame(render);
+          if (state.autoRotate) {
+            camera.yaw += state.autoSpeed * 0.003;
+          }
+          ctx.clearRect(0, 0, width, height);
+          const basis = getCameraBasis();
+          drawAxesAndGrid(basis);
+          drawPoints(basis);
+        }
+
+        render();
+      })();
+    </script>
+  </body>
+</html>
